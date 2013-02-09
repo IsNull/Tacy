@@ -19,12 +19,34 @@
  *
  * Author  : Joakim Eriksson, Niclas Finne, Sverker Janson
  * Created : 23 April, 2002
- * Updated : $Date: 2005/06/07 19:06:16 $
+ * Updated : $Date: 2005/06/07 19:06:17 $
  *	     $Revision: 1.1 $
  */
 
-package ch.mas.tacy.model;
+package ch.mas.tacy.model.agentware;
 
-public interface TACMessageReceiver {
-  public void messageReceived(TACMessage msg);
-}
+public class Transaction {
+
+  private int auction;
+  private int quantity;
+  private float price;
+
+  public Transaction(int auction, int quantity, float price) {
+    this.auction = auction;
+    this.price = price;
+    this.quantity = quantity;
+  }
+
+  public int getQuantity() {
+    return quantity;
+  }
+
+  public float getPrice() {
+    return price;
+  }
+
+  public int getAuction() {
+    return auction;
+  }
+
+} // Transaction

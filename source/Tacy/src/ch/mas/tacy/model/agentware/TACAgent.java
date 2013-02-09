@@ -26,7 +26,7 @@
  * Purpose : TAC Classic AgentWare for Java
  */
 
-package ch.mas.tacy.model;
+package ch.mas.tacy.model.agentware;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -245,7 +245,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 	}
 
 	/**
-	 * This constructor is only for backward compability
+	 * This constructor is only for backward compatibility
 	 *
 	 * @deprecated
 	 */

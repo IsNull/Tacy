@@ -1,4 +1,4 @@
-package ch.mas.tacy.model;
+package ch.mas.tacy;
 
 public class App {
 

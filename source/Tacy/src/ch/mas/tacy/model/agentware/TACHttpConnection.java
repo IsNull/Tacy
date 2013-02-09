@@ -28,7 +28,7 @@
  * A connection class for connections to the server via HTTP
  */
 
-package ch.mas.tacy.model;
+package ch.mas.tacy.model.agentware;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;

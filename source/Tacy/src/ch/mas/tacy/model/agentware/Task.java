@@ -28,7 +28,7 @@
  *
  */
 
-package ch.mas.tacy.model;
+package ch.mas.tacy.model.agentware;
 
 public interface Task {
 

@@ -23,7 +23,7 @@
  *	     $Revision: 1.1 $
  */
 
-package ch.mas.tacy.model;
+package ch.mas.tacy.model.agentware;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;

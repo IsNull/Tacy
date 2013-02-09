@@ -23,7 +23,7 @@
  *	     $Revision: 1.2 $
  */
 
-package ch.mas.tacy.model;
+package ch.mas.tacy.model.agentware;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;

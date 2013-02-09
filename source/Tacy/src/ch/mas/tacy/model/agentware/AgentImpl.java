@@ -23,7 +23,7 @@
  *	     $Revision: 1.2 $
  */
 
-package ch.mas.tacy.model;
+package ch.mas.tacy.model.agentware;
 
 import ch.mas.tacy.util.ArgEnumerator;
 

@@ -30,7 +30,7 @@
  *   TimeDispatcher.getDefault().
  */
 
-package ch.mas.tacy.model;
+package ch.mas.tacy.model.agentware;
 import java.util.ArrayList;
 
 public class TimeDispatcher extends Thread {

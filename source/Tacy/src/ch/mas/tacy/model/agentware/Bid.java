@@ -23,7 +23,7 @@
  *	     $Revision: 1.1 $
  */
 
-package ch.mas.tacy.model;
+package ch.mas.tacy.model.agentware;
 import java.util.StringTokenizer;
 
 public class Bid {
