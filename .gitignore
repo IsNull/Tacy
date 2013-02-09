@@ -3,4 +3,8 @@
 # Package Files #
 
 
+# OS specific #
 .DS_Store
+
+# ignore log files #
+*/logs/*
