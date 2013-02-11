@@ -124,8 +124,8 @@
  *  - the current game has ended
  *
  */
-
-package ch.mas.tacy.model;
+//
+package ch.mas.tacy;
 import java.util.logging.Logger;
 
 import ch.mas.tacy.model.agentware.AgentImpl;
@@ -134,6 +134,13 @@ import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
 import ch.mas.tacy.util.ArgEnumerator;
 
+
+// ch.mas.tacy.DummyAgent
+/**
+ * 
+ * @author IsNull
+ *
+ */
 public class DummyAgent extends AgentImpl {
 
 	private static final Logger log =
