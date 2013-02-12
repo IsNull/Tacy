@@ -63,9 +63,20 @@ public abstract class AgentImpl {
 		return null;
 	}
 
+	/**
+	 * New information about the quotes on the auction (quote.getAuction())
+	 *    has arrived
+	 * @param quote
+	 */
 	public void quoteUpdated(Quote quote) {
 	}
 
+	/**
+	 * New information about the quotes on all auctions for the auction
+	 * category has arrived (quotes for a specific type of auctions are
+	 * often requested at once).
+	 * @param auctionCategory
+	 */
 	public void quoteUpdated(int auctionCategory) {
 	}
 
@@ -79,6 +90,10 @@ public abstract class AgentImpl {
 
 	public abstract void auctionClosed(int auction);
 
+	/**
+	 * there has been a transaction
+	 * @param transaction
+	 */
 	public void transaction(Transaction transaction) {
 	}
 

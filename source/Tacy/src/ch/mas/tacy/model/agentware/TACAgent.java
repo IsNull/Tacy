@@ -513,18 +513,34 @@ public class TACAgent implements Task, TACMessageReceiver {
 	// API's for the agent
 	// -------------------------------------------------------------------
 
+	/**
+	 * returns the id of current game or -1 if no game is currently plaing
+	 * @return
+	 */
 	public int getGameID() {
 		return playingGame;
 	}
 
+	/**
+	 * returns the current server time in milliseconds
+	 * @return
+	 */
 	public long getServerTime() {
 		return System.currentTimeMillis() - timeDiff;
 	}
 
+	/**
+	 * returns the time from start of game in milliseconds
+	 * @return
+	 */
 	public long getGameTime() {
 		return getServerTime() - startTime;
 	}
 
+	/**
+	 * returns the time left in the game in milliseconds
+	 * @return
+	 */
 	public long getGameTimeLeft() {
 		long time = startTime + gameLength - getServerTime();
 		return time > 0L ? time : 0L;
@@ -544,7 +560,11 @@ public class TACAgent implements Task, TACMessageReceiver {
 		return getTimeAsString(getGameTimeLeft());
 	}
 
-	// Returns the time in minutes and seconds
+	/**
+	 * Returns the time in minutes and seconds
+	 * @param time
+	 * @return
+	 */
 	private String getTimeAsString(long time) {
 		long timeInSeconds = time / 1000;
 		int sek = (int) (timeInSeconds % 60);
@@ -556,6 +576,10 @@ public class TACAgent implements Task, TACMessageReceiver {
 		return sb.append(sek).toString();
 	}
 
+	/**
+	 * returns the game length in milliseconds
+	 * @return
+	 */
 	public int getGameLength() {
 		return gameLength;
 	}
@@ -585,10 +609,20 @@ public class TACAgent implements Task, TACMessageReceiver {
 		return auctionType[auction];
 	}
 
+	/**
+	 * returns the number of auctions in TAC
+	 * @return
+	 */
 	public static int getAuctionNo() {
 		return NO_AUCTIONS;
 	}
 
+	/**
+	 * returns the category for this auction (CAT_FLIGHT, CAT_HOTEL,
+	 *    CAT_ENTERTAINMENT)
+	 * @param auction
+	 * @return
+	 */
 	public static int getAuctionCategory(int auction) {
 		if (auction < 8) {
 			return CAT_FLIGHT;
@@ -598,45 +632,12 @@ public class TACAgent implements Task, TACMessageReceiver {
 		return CAT_ENTERTAINMENT;
 	}
 
-	// Returns the day of the auction in the range 1 - 5
-	public static int getAuctionDay(int auction) {
-		int day = (auction % 4) + 1;
-		if ((auction / 4) == 1) {
-			// Outflights are specified as day 2 to day 5
-			day++;
-		}
-		return day;
-	}
-
-	// Returns the type of the auction.  Please note that
-	// auctions in different categories might have the
-	// same value as type.
-	public static int getAuctionType(int auction) {
-		int type = auction / 4;
-		switch (type) {
-		case 0: return TYPE_INFLIGHT;
-		case 1: return TYPE_OUTFLIGHT;
-		case 2: return TYPE_CHEAP_HOTEL;
-		case 3: return TYPE_GOOD_HOTEL;
-		case 4: return TYPE_ALLIGATOR_WRESTLING;
-		case 5: return TYPE_AMUSEMENT;
-		default: return TYPE_MUSEUM;
-		}
-	}
-
-	public static int getAuctionFor(int category, int type, int day) {
-		if (category == 0) {
-			if (type == 1) {
-				return day - 1;
-			} else {
-				return day + 2;
-			}
-		} else if (category == 2) {
-			type--;
-		}
-		return category * 8 + type * 4 + day - 1;
-	}
-
+	/**
+	 * returns the category for this auction (CAT_FLIGHT, CAT_HOTEL, CAT_ENTERTAINMENT)
+	 *   
+	 * @param cat
+	 * @return
+	 */
 	private int getAuctionCategory(String cat) {
 		if ("flight".equals(cat)) return CAT_FLIGHT;
 		if ("hotel".equals(cat)) return CAT_HOTEL;
@@ -651,16 +652,94 @@ public class TACAgent implements Task, TACMessageReceiver {
 						: Integer.toString(category);
 	}
 
+	/**
+	 * Returns the day of the auction in the range 1 - 5
+	 * @param auction
+	 * @return
+	 */
+	public static int getAuctionDay(int auction) {
+		int day = (auction % 4) + 1;
+		if ((auction / 4) == 1) {
+			// Outflights are specified as day 2 to day 5
+			day++;
+		}
+		return day;
+	}
+
+	/**
+	 * Returns the type of the auction.  Please note that
+	 * auctions in different categories might have the
+	 * same value as type.
+	 * 
+	 * returns the type for this auction (TYPE_INFLIGHT, TYPE_OUTFLIGHT, etc).
+	 * @param auction
+	 * @return
+	 */
+	public static int getAuctionType(int auction) {
+		int type = auction / 4;
+		switch (type) {
+		case 0: return TYPE_INFLIGHT;
+		case 1: return TYPE_OUTFLIGHT;
+		case 2: return TYPE_CHEAP_HOTEL;
+		case 3: return TYPE_GOOD_HOTEL;
+		case 4: return TYPE_ALLIGATOR_WRESTLING;
+		case 5: return TYPE_AMUSEMENT;
+		default: return TYPE_MUSEUM;
+		}
+	}
+	/**
+	 * returns the auction-id for the requested resource
+	 *   (categories are TACAgent.{CAT_FLIGHT, CAT_HOTEL, CAT_ENTERTAINMENT
+	 *    and types are TACAgent.TYPE_INFLIGHT, TACAgent.TYPE_OUTFLIGHT, etc)
+	 *    
+	 * @param category
+	 * @param type
+	 * @param day
+	 * @return
+	 */
+	public static int getAuctionFor(int category, int type, int day) {
+		if (category == 0) {
+			if (type == 1) {
+				return day - 1;
+			} else {
+				return day + 2;
+			}
+		} else if (category == 2) {
+			type--;
+		}
+		return category * 8 + type * 4 + day - 1;
+	}
+
+
+
+	/**
+	 * returns the clients preference for the specified type
+	 *   (types are TACAgent.{ARRIVAL, DEPARTURE, HOTEL_VALUE, E1, E2, E3}
+	 *   
+	 * @param client
+	 * @param type
+	 * @return
+	 */
 	public int getClientPreference(int client, int type) {
 		return clientPrefs[client][type];
 	}
 
+	/**
+	 * Returns the number of items that the agent own for this auction
+	 * 
+	 * The id that the agent gets for auctions is always 0 - 27
+	 * @param auctionID
+	 * @return
+	 */
 	public int getOwn(int auctionID) {
-		// The id that the agent gets for auctions is always 0 - 27
 		return owns[auctionID];
 	}
 
-	// What might be owned in addition  to "getOwn"
+	/**
+	 * What might be owned in addition  to "getOwn"
+	 * @param auctionID
+	 * @return
+	 */
 	public int getProbablyOwn(int auctionID) {
 		Bid bid = getBid(auctionID);
 		if (bid == null)
@@ -680,10 +759,20 @@ public class TACAgent implements Task, TACMessageReceiver {
 		return quotes[auctionID];
 	}
 
+	/**
+	 * Returns the allocation set for this auction
+	 * @param auction
+	 * @return
+	 */
 	public int getAllocation(int auction) {
 		return allocate[auction];
 	}
 
+	/**
+	 * Set the allocation for this auction
+	 * @param auction
+	 * @param alloc
+	 */
 	public void setAllocation(int auction, int alloc) {
 		allocate[auction] = alloc;
 		if (tableModel != null) {
@@ -722,6 +811,10 @@ public class TACAgent implements Task, TACMessageReceiver {
 		}
 	}
 
+	/**
+	 * Submits a bid to the tac server
+	 * @param bid
+	 */
 	public void submitBid(Bid bid) {
 		if (getGameID() < 0) {
 			throw new IllegalStateException("No game playing");
@@ -734,6 +827,12 @@ public class TACAgent implements Task, TACMessageReceiver {
 		sendMessage(msg, this);
 	}
 
+	/**
+	 * Replaces the old bid (the current active bid) in the tac server
+	 * 
+	 * @param oldBid
+	 * @param bid
+	 */
 	public void replaceBid(Bid oldBid, Bid bid) {
 		if (getGameID() < 0) {
 			throw new IllegalStateException("No game playing");

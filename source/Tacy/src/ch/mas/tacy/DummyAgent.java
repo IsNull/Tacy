@@ -138,7 +138,7 @@ import ch.mas.tacy.util.ArgEnumerator;
 // ch.mas.tacy.DummyAgent
 /**
  * 
- * @author IsNull
+ * @author sics
  *
  */
 public class DummyAgent extends AgentImpl {
