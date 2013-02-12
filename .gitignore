@@ -8,3 +8,7 @@
 
 # ignore log files #
 */logs/*
+*.log
+
+*/tacserver/state/*
+*/tacserver/public_html/history/*
