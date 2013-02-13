@@ -10,6 +10,6 @@
 */logs/*
 *.log
 
-*/tacserver/state/*
-*/tacserver/public_html/history/*
+/tacserver/state/*
+/tacserver/public_html/history/*
 
