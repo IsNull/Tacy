@@ -10,6 +10,11 @@
 */logs/*
 *.log
 
-/tacserver/state/*
-/tacserver/public_html/history/*
+
+*.bak
+*.ser
+*.lck
+
+tacserver/state/*
+tacserver/public_html/history/*
 
