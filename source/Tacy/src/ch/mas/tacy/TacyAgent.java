@@ -3,6 +3,7 @@ package ch.mas.tacy;
 import ch.mas.tacy.model.agentware.AgentImpl;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.Bid;
+import ch.mas.tacy.model.agentware.CommandStatus;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.util.ArgEnumerator;
 
@@ -41,7 +42,7 @@ public class TacyAgent extends AgentImpl  {
 	 * the bid contained errors (error represent error status - commandStatus)
 	 */
 	@Override
-	public void bidError(Bid bid, int error) {
+	public void bidError(Bid bid, CommandStatus error) {
 
 	}
 

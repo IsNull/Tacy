@@ -53,59 +53,6 @@ public class TACAgent implements Task, TACMessageReceiver {
 	private static final Logger log =
 			Logger.getLogger(TACAgent.class.getName());
 
-	/** Command status */
-	public final static int NO_ERROR = 0;
-	public final static int INTERNAL_ERROR = 1;
-	public final static int AGENT_NOT_AUTH = 2;
-	public final static int GAME_NOT_FOUND = 4;
-	public final static int NOT_MEMBER_OF_GAME = 5;
-	public final static int GAME_FUTURE = 7;
-	public final static int GAME_COMPLETE = 10;
-	public final static int AUCTION_NOT_FOUND = 11;
-	public final static int AUCTION_CLOSED = 12;
-	public final static int BID_NOT_FOUND = 13;
-	public final static int TRANS_NOT_FOUND = 14;
-	public final static int CANNOT_WITHDRAW_BID = 15;
-	public final static int BAD_BIDSTRING_FORMAT = 16;
-	public final static int NOT_SUPPORTED = 17;
-	/** Extension in 1.1 */
-	public final static int GAME_TYPE_NOT_SUPPORTED = 18;
-
-	private final static String[] statusName = {
-		"no error",
-		"internal error",
-		"agent not auth",
-		"game not found",
-		"not member of game",
-		"game future",
-		"game complete",
-		"auction not found",
-		"auction closed",
-		"bid not found",
-		"trans not found",
-		"cannot withdraw bid",
-		"bad bidstring format",
-		"not supported",
-		"game type not supported"
-	};
-
-	private final static int[] statusCodes = {
-		NO_ERROR,
-		INTERNAL_ERROR,
-		AGENT_NOT_AUTH,
-		GAME_NOT_FOUND,
-		NOT_MEMBER_OF_GAME,
-		GAME_FUTURE,
-		GAME_COMPLETE,
-		AUCTION_NOT_FOUND,
-		AUCTION_CLOSED,
-		BID_NOT_FOUND,
-		TRANS_NOT_FOUND,
-		CANNOT_WITHDRAW_BID,
-		BAD_BIDSTRING_FORMAT,
-		NOT_SUPPORTED,
-		GAME_TYPE_NOT_SUPPORTED
-	};
 
 	/** Client preferences types */
 	public final static int ARRIVAL = 0;
@@ -585,26 +532,11 @@ public class TACAgent implements Task, TACMessageReceiver {
 		return gameLength;
 	}
 
-	public String commandStatusToString(int status) {
-		for (int i = 0, n = statusCodes.length; i < n; i++) {
-			if (statusCodes[i] == status) {
-				return statusName[i];
-			}
-		}
-		return Integer.toString(status);
-	}
 
 	public int getServerAuctionID(int auction) {
 		return auctionIDs[auction];
 	}
 
-	/**
-	 * @deprecated Use getServerAuctionID() instead!
-	 **/
-	@Deprecated
-	public int getAuctionID(int auction) {
-		return auctionIDs[auction];
-	}
 
 	public static String getAuctionTypeAsString(int auction) {
 		return auctionType[auction];
@@ -1217,7 +1149,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 	}
 
 	private boolean handleLogin(TACMessage msg) {
-		int status = NO_ERROR;
+		CommandStatus status = CommandStatus.NO_ERROR;
 		while (msg.nextTag()) {
 			if (msg.isTag("userID")) {
 				userID = msg.getValueAsInt(-1);
@@ -1231,17 +1163,17 @@ public class TACAgent implements Task, TACMessageReceiver {
 				}
 				return true;
 			} else if (msg.isTag("commandStatus")) {
-				status = msg.getValueAsInt(NO_ERROR);
+				status = CommandStatus.byValue(msg.getValueAsInt(CommandStatus.NO_ERROR.Value));
 			}
 		}
 		fatalError("Failed to login as " + userName + ": status="
-				+ commandStatusToString(status));
+				+ status);
 		return false;
 	}
 
 	private void handleBidSubmission(TACMessage msg) {
 		Bid bid = (Bid) msg.getUserData();
-		int status = NO_ERROR;
+		CommandStatus status = CommandStatus.NO_ERROR;
 
 		while (msg.nextTag()) {
 			if (msg.isTag("bidID")) {
@@ -1257,20 +1189,20 @@ public class TACAgent implements Task, TACMessageReceiver {
 					bid.setProcessingState(Bid.REJECTED);
 				}
 			} else if (msg.isTag("commandStatus")) {
-				status = mapCommandStatus(msg.getValueAsInt(NO_ERROR));
+				status = mapCommandStatus(msg.getValueAsInt(CommandStatus.NO_ERROR.Value));
 			}
 		}
 
 		if (bid.isRejected()) {
 			// reset the active bid!
-			revertBid(bid, NO_ERROR);
-		} else if (status == AUCTION_CLOSED) {
+			revertBid(bid, CommandStatus.NO_ERROR);
+		} else if (status == CommandStatus.AUCTION_CLOSED) {
 			// reset the active bid!
 			revertBid(bid, status);
 			// Let the quote close the auction later!
-		} else if (status != NO_ERROR) {
+		} else if (status != CommandStatus.NO_ERROR) {
 			fatalError("Can not handle bid submission: "
-					+ commandStatusToString(status), 5000);
+					+ status, 5000);
 		} else {
 			// Request Bid info
 			TACMessage msg2 = new TACMessage("bidInfo");
@@ -1287,7 +1219,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 	// the bid "bid" has been rejected/ or in error
 	// ensure that the information about active bid, etc is correct
 	// call agent
-	private synchronized void revertBid(Bid bid, int status) {
+	private synchronized void revertBid(Bid bid, CommandStatus status) {
 		int auction = bid.getAuction();
 
 		Bid activeBid = getBid(auction);
@@ -1313,7 +1245,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 
 		// if this was the active bid
 		if (bid != null) {
-			if (status == NO_ERROR) {
+			if (status == CommandStatus.NO_ERROR) {
 				try {
 					agent.bidRejected(bid);
 				} catch (Exception e) {
@@ -1362,10 +1294,10 @@ public class TACAgent implements Task, TACMessageReceiver {
 		int quantity = 0;
 		int auction = 0;
 		float price = 0f;
-		int status = NO_ERROR;
+		CommandStatus status = CommandStatus.NO_ERROR;
 		while (msg.nextTag()) {
 			if (msg.isTag("/transInfo")) {
-				if (status == NO_ERROR) {
+				if (status == CommandStatus.NO_ERROR) {
 					Transaction trans = new Transaction(auction, quantity, price);
 					owns[auction] += quantity;
 					costs[auction] += quantity * price;
@@ -1388,7 +1320,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 			} else if (msg.isTag("auctionID")) {
 				auction = getAuctionPos(msg.getValueAsInt(0));
 			} else if (msg.isTag("commandStatus")) {
-				status = msg.getValueAsInt(NO_ERROR);
+				status = CommandStatus.byValue(msg.getValueAsInt(CommandStatus.NO_ERROR.Value));
 			}
 		}
 		Object obj = msg.getUserData();
@@ -1570,7 +1502,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 		int processingState = Bid.UNPROCESSED;
 		long timeClosed = 0L;
 		long timeProcessed = 0L;
-		int commandStatus = NO_ERROR;
+		CommandStatus commandStatus = CommandStatus.NO_ERROR;
 
 		while (msg.nextTag()) {
 			if (msg.isTag("bidString")) {
@@ -1587,7 +1519,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 			} else if (msg.isTag("timeProcessed")) {
 				timeProcessed = msg.getValueAsLong(0);
 			} else if (msg.isTag("commandStatus")) {
-				commandStatus = msg.getValueAsInt(NO_ERROR);
+				commandStatus = CommandStatus.byValue(msg.getValueAsInt(CommandStatus.NO_ERROR.Value));
 			}
 		}
 
@@ -1603,10 +1535,10 @@ public class TACAgent implements Task, TACMessageReceiver {
 		// 3. Bid is submitted with submitBid
 		// 4. BidInfo for 2 is received
 
-		if (commandStatus != NO_ERROR) {
+		if (commandStatus != CommandStatus.NO_ERROR) {
 			log.warning("could not retrieve bidInfo for bid " + bid.getID()
 					+ " in auction " + bid.getAuction() + ": "
-					+ commandStatusToString(commandStatus));
+					+ commandStatus);
 		} else {
 			// Bid is ok (not preliminary or rejected)!
 			bid.setReplacing(null);
@@ -1747,8 +1679,8 @@ public class TACAgent implements Task, TACMessageReceiver {
 					}
 				}
 			} else if (msg.isTag("commandStatus")) {
-				int status = mapCommandStatus(msg.getValueAsInt(NO_ERROR));
-				if (status == GAME_FUTURE) {
+				CommandStatus status = mapCommandStatus(msg.getValueAsInt(CommandStatus.NO_ERROR.Value));
+				if (status == CommandStatus.GAME_FUTURE) {
 					// Wait a second and retry!
 					try {
 						Thread.sleep(1000);
@@ -1757,13 +1689,13 @@ public class TACAgent implements Task, TACMessageReceiver {
 					log.fine("handleGetAuctions: Game future, retrying");
 					nextGameStarts(connection);
 					return;
-				} else if (status == GAME_COMPLETE) {
+				} else if (status == CommandStatus.GAME_COMPLETE) {
 					log.fine("handleGetAuctions: Game completed, ending");
 					gameEnds();
-				} else if (status != NO_ERROR) {
+				} else if (status != CommandStatus.NO_ERROR) {
 					fatalError("could not get auctions for game "
 							+ nextGameID + ": status="
-							+ commandStatusToString(status), 5000);
+							+ status, 5000);
 				}
 			}
 		}
@@ -1855,16 +1787,16 @@ public class TACAgent implements Task, TACMessageReceiver {
 					}
 				}
 			} else if (msg.isTag("commandStatus")) {
-				int status = msg.getValueAsInt(NO_ERROR);
-				if (status != NO_ERROR) {
-					if (status == GAME_COMPLETE) {
+				CommandStatus status = CommandStatus.byValue(msg.getValueAsInt(CommandStatus.NO_ERROR.Value));
+				if (status != CommandStatus.NO_ERROR) {
+					if (status == CommandStatus.GAME_COMPLETE) {
 						log.fine("handleGetGame: Game completed, ending");
 						gameRunning = false;
 						gameEnds();
 					} else {
 						fatalError("could not get game parameters for game "
 								+ nextGameID + ": status="
-								+ commandStatusToString(status), 5000);
+								+ status, 5000);
 						gameRunning = false;
 					}
 				}
@@ -1906,11 +1838,11 @@ public class TACAgent implements Task, TACMessageReceiver {
 					}
 				}
 			} else if (msg.isTag("commandStatus")) {
-				int status = msg.getValueAsInt(NO_ERROR);
-				if (status != NO_ERROR) {
+				CommandStatus status = CommandStatus.byValue(msg.getValueAsInt(CommandStatus.NO_ERROR.Value));
+				if (status != CommandStatus.NO_ERROR) {
 					log.severe("could not recover bids for game "
 							+ nextGameID + ": status="
-							+ commandStatusToString(status));
+							+ status);
 				}
 			}
 		}
@@ -1953,7 +1885,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 		TACConnection connection = this.connection;
 		if (connection == null) return;
 
-		int status = NO_ERROR;
+		CommandStatus status = CommandStatus.NO_ERROR;
 		int gameID = -1;
 		long startTime = 0L;
 
@@ -1963,7 +1895,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 			} else if (msg.isTag("startTime")) {
 				startTime = msg.getValueAsLong(-1);
 			} else if (msg.isTag("commandStatus")) {
-				status = mapCommandStatus(msg.getValueAsInt(NO_ERROR));
+				status = mapCommandStatus(msg.getValueAsInt(CommandStatus.NO_ERROR.Value));
 			}
 		}
 
@@ -1998,11 +1930,11 @@ public class TACAgent implements Task, TACMessageReceiver {
 					.addTask(nextGameTime + 1000, "gameStarts", connection, this);
 				}
 			}
-		} else if (status != NO_ERROR) {
+		} else if (status != CommandStatus.NO_ERROR) {
 			fatalError("Failed to get next game"
 					+ (gameType != null ? " with game type '" + gameType + '\''
 							: "") + ": status="
-							+ commandStatusToString(status), 5000);
+							+ status, 5000);
 		}
 	}
 
@@ -2022,12 +1954,11 @@ public class TACAgent implements Task, TACMessageReceiver {
 		}
 	}
 
-	private static int mapCommandStatus(int status) {
+	private static CommandStatus mapCommandStatus(int status) {
 		if (status == 9) {
-			return GAME_FUTURE;
-		} else {
-			return status;
-		}
+			return CommandStatus.GAME_FUTURE;
+		} 
+		return CommandStatus.byValue(status);
 	}
 
 

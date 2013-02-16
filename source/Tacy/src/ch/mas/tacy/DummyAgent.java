@@ -131,6 +131,7 @@ import java.util.logging.Logger;
 import ch.mas.tacy.model.agentware.AgentImpl;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.Bid;
+import ch.mas.tacy.model.agentware.CommandStatus;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
 import ch.mas.tacy.util.ArgEnumerator;
@@ -217,9 +218,9 @@ public class DummyAgent extends AgentImpl {
 	}
 
 	@Override
-	public void bidError(Bid bid, int status) {
+	public void bidError(Bid bid, CommandStatus status) {
 		log.warning("Bid Error in auction " + bid.getAuction() + ": " + status
-				+ " (" + agent.commandStatusToString(status) + ')');
+				+ " (" + status + ')');
 	}
 
 	@Override
