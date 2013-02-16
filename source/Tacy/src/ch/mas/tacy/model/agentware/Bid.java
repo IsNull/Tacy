@@ -29,9 +29,7 @@ import java.util.StringTokenizer;
 public class Bid {
 
 	public final static String EMPTY_BID_STRING = "()";
-
 	public final static int NO_ID = -1;
-
 	private final static int INCREMENT = 10;
 
 
