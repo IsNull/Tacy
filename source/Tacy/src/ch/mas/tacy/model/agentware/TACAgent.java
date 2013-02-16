@@ -761,8 +761,8 @@ public class TACAgent implements Task, TACMessageReceiver {
 		}
 		bid.submitted();
 		if (oldBid != bids[auction]) {
-			bid.setRejectReason(Bid.ACTIVE_BID_CHANGED);
-			bid.setProcessingState(Bid.REJECTED);
+			bid.setRejectReason(RejectReason.ACTIVE_BID_CHANGED);
+			bid.setProcessingState(ProcessingState.REJECTED);
 			try {
 				agent.bidRejected(bid);
 			} catch (Exception e) {
@@ -1183,10 +1183,10 @@ public class TACAgent implements Task, TACMessageReceiver {
 				String hash = msg.getValue();
 				bid.setBidHash(hash);
 			} else if (msg.isTag("rejectReason")) {
-				int reject = msg.getValueAsInt(Bid.NOT_REJECTED);
+				RejectReason reject = RejectReason.byValue(msg.getValueAsInt(RejectReason.NOT_REJECTED.Value));
 				bid.setRejectReason(reject);
-				if (reject != Bid.NOT_REJECTED) {
-					bid.setProcessingState(Bid.REJECTED);
+				if (reject != RejectReason.NOT_REJECTED) {
+					bid.setProcessingState(ProcessingState.REJECTED);
 				}
 			} else if (msg.isTag("commandStatus")) {
 				status = mapCommandStatus(msg.getValueAsInt(CommandStatus.NO_ERROR.Value));
@@ -1498,8 +1498,8 @@ public class TACAgent implements Task, TACMessageReceiver {
 		Bid bid = (Bid) msg.getUserData();
 		String bidHash = null;
 		String bidString = null;
-		int rejectReason = Bid.NOT_REJECTED;
-		int processingState = Bid.UNPROCESSED;
+		RejectReason rejectReason = RejectReason.NOT_REJECTED;
+		ProcessingState processingState = ProcessingState.UNPROCESSED;
 		long timeClosed = 0L;
 		long timeProcessed = 0L;
 		CommandStatus commandStatus = CommandStatus.NO_ERROR;
@@ -1510,10 +1510,10 @@ public class TACAgent implements Task, TACMessageReceiver {
 			} else if (msg.isTag("bidHash")) {
 				bidHash = msg.getValue();
 			} else if (msg.isTag("rejectReason")) {
-				rejectReason = Bid.mapRejectReason(msg.getValueAsInt(rejectReason));
+				rejectReason = Bid.mapRejectReason(msg.getValueAsInt(rejectReason.Value));
 			} else if (msg.isTag("processingState")) {
 				processingState =
-						Bid.mapProcessingState(msg.getValueAsInt(processingState));
+						Bid.mapProcessingState(msg.getValueAsInt(processingState.Value));
 			} else if (msg.isTag("timeClosed")) {
 				timeClosed = msg.getValueAsLong(0);
 			} else if (msg.isTag("timeProcessed")) {
@@ -2085,7 +2085,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 			case 5:
 				Bid bd = bids[row];
 				return (bd != null)
-						? bd.getProcessingStateAsString()
+						? bd.getProcessingState()
 								: "no bid";
 			case 6:
 				Bid bid = bids[row];

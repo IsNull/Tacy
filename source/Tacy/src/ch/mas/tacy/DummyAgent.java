@@ -206,7 +206,7 @@ public class DummyAgent extends AgentImpl {
 	public void bidUpdated(Bid bid) {
 		log.fine("Bid Updated: id=" + bid.getID() + " auction="
 				+ bid.getAuction() + " state="
-				+ bid.getProcessingStateAsString());
+				+ bid.getProcessingState());
 		log.fine("       Hash: " + bid.getBidHash());
 	}
 
@@ -214,7 +214,7 @@ public class DummyAgent extends AgentImpl {
 	public void bidRejected(Bid bid) {
 		log.warning("Bid Rejected: " + bid.getID());
 		log.warning("      Reason: " + bid.getRejectReason()
-				+ " (" + bid.getRejectReasonAsString() + ')');
+				+ " (" + bid.getRejectReason() + ')');
 	}
 
 	@Override
