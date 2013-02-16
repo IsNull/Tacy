@@ -82,7 +82,7 @@ public abstract class AgentImpl {
 
 	public abstract void bidUpdated(Bid bid);
 	public abstract void bidRejected(Bid bid);
-	public abstract void bidError(Bid bid, int error);
+	public abstract void bidError(Bid bid, CommandStatus error);
 
 	public abstract void gameStarted();
 
