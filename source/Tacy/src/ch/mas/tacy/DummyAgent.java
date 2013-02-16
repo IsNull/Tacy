@@ -129,6 +129,7 @@ package ch.mas.tacy;
 import java.util.logging.Logger;
 
 import ch.mas.tacy.model.agentware.AgentImpl;
+import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
@@ -158,8 +159,8 @@ public class DummyAgent extends AgentImpl {
 	@Override
 	public void quoteUpdated(Quote quote) {
 		int auction = quote.getAuction();
-		int auctionCategory = TACAgent.getAuctionCategory(auction);
-		if (auctionCategory == TACAgent.CAT_HOTEL) {
+		AuctionCategory auctionCategory = TACAgent.getAuctionCategory(auction);
+		if (auctionCategory == AuctionCategory.HOTEL) {
 			int alloc = agent.getAllocation(auction);
 			if (alloc > 0 && quote.hasHQW(agent.getBid(auction)) &&
 					quote.getHQW() < alloc) {
@@ -174,7 +175,7 @@ public class DummyAgent extends AgentImpl {
 				}
 				agent.submitBid(bid);
 			}
-		} else if (auctionCategory == TACAgent.CAT_ENTERTAINMENT) {
+		} else if (auctionCategory == AuctionCategory.ENTERTAINMENT) {
 			int alloc = agent.getAllocation(auction) - agent.getOwn(auction);
 			if (alloc != 0) {
 				Bid bid = new Bid(auction);
@@ -194,9 +195,9 @@ public class DummyAgent extends AgentImpl {
 	}
 
 	@Override
-	public void quoteUpdated(int auctionCategory) {
+	public void quoteUpdated(AuctionCategory auctionCategory) {
 		log.fine("All quotes for "
-				+ TACAgent.auctionCategoryToString(auctionCategory)
+				+ auctionCategory
 				+ " has been updated");
 	}
 
@@ -244,18 +245,18 @@ public class DummyAgent extends AgentImpl {
 			int alloc = agent.getAllocation(i) - agent.getOwn(i);
 			float price = -1f;
 			switch (TACAgent.getAuctionCategory(i)) {
-			case TACAgent.CAT_FLIGHT:
+			case FLIGHT:
 				if (alloc > 0) {
 					price = 1000;
 				}
 				break;
-			case TACAgent.CAT_HOTEL:
+			case HOTEL:
 				if (alloc > 0) {
 					price = 200;
 					prices[i] = 200f;
 				}
 				break;
-			case TACAgent.CAT_ENTERTAINMENT:
+			case ENTERTAINMENT:
 				if (alloc < 0) {
 					price = 200;
 					prices[i] = 200f;
@@ -288,10 +289,10 @@ public class DummyAgent extends AgentImpl {
 
 			// Get the flight preferences auction and remember that we are
 			// going to buy tickets for these days. (inflight=1, outflight=0)
-			int auction = TACAgent.getAuctionFor(TACAgent.CAT_FLIGHT,
+			int auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT,
 					TACAgent.TYPE_INFLIGHT, inFlight);
 			agent.setAllocation(auction, agent.getAllocation(auction) + 1);
-			auction = TACAgent.getAuctionFor(TACAgent.CAT_FLIGHT,
+			auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT,
 					TACAgent.TYPE_OUTFLIGHT, outFlight);
 			agent.setAllocation(auction, agent.getAllocation(auction) + 1);
 
@@ -304,7 +305,7 @@ public class DummyAgent extends AgentImpl {
 			}
 			// allocate a hotel night for each day that the agent stays
 			for (int d = inFlight; d < outFlight; d++) {
-				auction = TACAgent.getAuctionFor(TACAgent.CAT_HOTEL, type, d);
+				auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, type, d);
 				log.finer("Adding hotel for day: " + d + " on " + auction);
 				agent.setAllocation(auction, agent.getAllocation(auction) + 1);
 			}
@@ -320,14 +321,14 @@ public class DummyAgent extends AgentImpl {
 
 	private int bestEntDay(int inFlight, int outFlight, int type) {
 		for (int i = inFlight; i < outFlight; i++) {
-			int auction = TACAgent.getAuctionFor(TACAgent.CAT_ENTERTAINMENT,
+			int auction = TACAgent.getAuctionFor(AuctionCategory.ENTERTAINMENT,
 					type, i);
 			if (agent.getAllocation(auction) < agent.getOwn(auction)) {
 				return auction;
 			}
 		}
 		// If no left, just take the first...
-		return TACAgent.getAuctionFor(TACAgent.CAT_ENTERTAINMENT,
+		return TACAgent.getAuctionFor(AuctionCategory.ENTERTAINMENT,
 				type, inFlight);
 	}
 

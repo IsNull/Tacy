@@ -1,6 +1,7 @@
 package ch.mas.tacy;
 
 import ch.mas.tacy.model.agentware.AgentImpl;
+import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.util.ArgEnumerator;
@@ -80,7 +81,7 @@ public class TacyAgent extends AgentImpl  {
 	 * @param auctionCategory
 	 */
 	@Override
-	public void quoteUpdated(int auctionCategory) {
+	public void quoteUpdated(AuctionCategory auctionCategory) {
 	}
 
 }

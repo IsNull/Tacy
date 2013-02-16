@@ -77,7 +77,7 @@ public abstract class AgentImpl {
 	 * often requested at once).
 	 * @param auctionCategory
 	 */
-	public void quoteUpdated(int auctionCategory) {
+	public void quoteUpdated(AuctionCategory auctionCategory) {
 	}
 
 	public abstract void bidUpdated(Bid bid);

@@ -115,13 +115,14 @@ public class TACAgent implements Task, TACMessageReceiver {
 	public final static int E2 = 4;
 	public final static int E3 = 5;
 
+	/*
 	public final static int CAT_FLIGHT = 0;
 	public final static int CAT_HOTEL = 1;
 	public final static int CAT_ENTERTAINMENT = 2;
 
 	private final static String[] categoryName = {
 		"flight", "hotel", "entertainment"
-	};
+	};*/
 
 	/** TAC Types */
 	public final static int TYPE_INFLIGHT = 1;
@@ -623,34 +624,15 @@ public class TACAgent implements Task, TACMessageReceiver {
 	 * @param auction
 	 * @return
 	 */
-	public static int getAuctionCategory(int auction) {
+	public static AuctionCategory getAuctionCategory(int auction) {
 		if (auction < 8) {
-			return CAT_FLIGHT;
+			return AuctionCategory.FLIGHT;
 		} else if (auction < 16) {
-			return CAT_HOTEL;
+			return AuctionCategory.HOTEL;
 		}
-		return CAT_ENTERTAINMENT;
+		return AuctionCategory.ENTERTAINMENT;
 	}
 
-	/**
-	 * returns the category for this auction (CAT_FLIGHT, CAT_HOTEL, CAT_ENTERTAINMENT)
-	 *   
-	 * @param cat
-	 * @return
-	 */
-	private int getAuctionCategory(String cat) {
-		if ("flight".equals(cat)) return CAT_FLIGHT;
-		if ("hotel".equals(cat)) return CAT_HOTEL;
-		if ("entertainment".equals(cat)) return CAT_ENTERTAINMENT;
-		log.warning("illegal category '" + cat + '\'');
-		return -1;
-	}
-
-	public static String auctionCategoryToString(int category) {
-		return (category >= CAT_FLIGHT) && (category < categoryName.length)
-				? categoryName[category]
-						: Integer.toString(category);
-	}
 
 	/**
 	 * Returns the day of the auction in the range 1 - 5
@@ -697,17 +679,17 @@ public class TACAgent implements Task, TACMessageReceiver {
 	 * @param day
 	 * @return
 	 */
-	public static int getAuctionFor(int category, int type, int day) {
-		if (category == 0) {
+	public static int getAuctionFor(AuctionCategory category, int type, int day) {
+		if (category == AuctionCategory.FLIGHT) {
 			if (type == 1) {
 				return day - 1;
 			} else {
 				return day + 2;
 			}
-		} else if (category == 2) {
+		} else if (category == AuctionCategory.ENTERTAINMENT) {
 			type--;
 		}
-		return category * 8 + type * 4 + day - 1;
+		return category.Value * 8 + type * 4 + day - 1;
 	}
 
 
@@ -1561,11 +1543,11 @@ public class TACAgent implements Task, TACMessageReceiver {
 
 	private boolean isLastAuction(Quote quote) {
 		int auction = quote.getAuction();
-		int category = getAuctionCategory(auction);
+		AuctionCategory category = getAuctionCategory(auction);
 		long serverTime, quoteTime;
-		if (category == CAT_ENTERTAINMENT) {
+		if (category == AuctionCategory.ENTERTAINMENT) {
 			return auction == MAX_ENTERTAINMENT;
-		} else if (category == CAT_FLIGHT) {
+		} else if (category == AuctionCategory.FLIGHT) {
 			return auction == MAX_FLIGHT;
 		} else if (!quote.isAuctionClosed() &&
 				(quoteTime = quote.getNextQuoteTime()) > 0 &&
@@ -1737,13 +1719,13 @@ public class TACAgent implements Task, TACMessageReceiver {
 	private void handleGetAuctions(TACMessage msg) {
 		while (msg.nextTag()) {
 			if (msg.isTag("auctionIDs")) {
-				int cat = -1;
+				AuctionCategory cat = AuctionCategory.NONE;
 				int type = -1;
 				int day = -1;
 				int id = -1;
 				while (msg.nextTag() && !msg.isTag("/auctionIDs")) {
 					if (msg.isTag("/TACAuctionTuple")) {
-						if (cat < 0 || id < 0) {
+						if (cat == AuctionCategory.NONE || id < 0) {
 							// Missing information about this auction.
 							// What should we do here??? FIX THIS!!!
 							log.severe("missing information for auction"
@@ -1759,7 +1741,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 					} else if (msg.isTag("day")) {
 						day = msg.getValueAsInt(-1);
 					} else if (msg.isTag("category")) {
-						cat = getAuctionCategory(msg.getValue());
+						cat = AuctionCategory.byName(msg.getValue());
 					} else if (msg.isTag("ID")) {
 						id = msg.getValueAsInt(-1);
 					}
@@ -1863,7 +1845,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 				int quantity = -1;
 				while (msg.nextTag() && !msg.isTag("/ticketEndowments")) {
 					if (msg.isTag("/ticketEndowmentTuple")) {
-						addOwn(CAT_ENTERTAINMENT, type, day, quantity);
+						addOwn(AuctionCategory.ENTERTAINMENT, type, day, quantity);
 					} else if (msg.isTag("type")) {
 						type = msg.getValueAsInt(-1);
 					} else if (msg.isTag("day")) {
@@ -1934,12 +1916,12 @@ public class TACAgent implements Task, TACMessageReceiver {
 		}
 	}
 
-	private void addOwn(int category, int type, int day, int quantity) {
+	private void addOwn(AuctionCategory category, int type, int day, int quantity) {
 		int pos = getAuctionFor(category, type, day);
 		owns[pos] += quantity;
 	}
 
-	private void addAuction(int category, int type, int day, int id) {
+	private void addAuction(AuctionCategory category, int type, int day, int id) {
 		int pos = getAuctionFor(category, type, day);
 		auctionIDs[pos] = id;
 		log.finest("Auction " + pos + " (" + getAuctionTypeAsString(pos)
