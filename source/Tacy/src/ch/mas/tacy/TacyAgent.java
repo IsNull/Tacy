@@ -17,9 +17,23 @@ import ch.mas.tacy.util.ArgEnumerator;
 public class TacyAgent extends AgentImpl  {
 
 	@Override
-	protected void init(ArgEnumerator args) {
+	protected void init(ArgEnumerator args) { }
+
+	/**
+	 * The TAC game has started, and all information about the
+	 * game is available (preferences etc).
+	 */
+	@Override
+	public void gameStarted() {
+
 
 	}
+
+	@Override
+	public void gameStopped() {
+
+	}
+
 
 	/**
 	 * There are TACAgent have received an answer on a bid query/submission
@@ -46,20 +60,7 @@ public class TacyAgent extends AgentImpl  {
 
 	}
 
-	/**
-	 * The TAC game has started, and all information about the
-	 * game is available (preferences etc).
-	 */
-	@Override
-	public void gameStarted() {
 
-
-	}
-
-	@Override
-	public void gameStopped() {
-
-	}
 
 	@Override
 	public void auctionClosed(int auction) {

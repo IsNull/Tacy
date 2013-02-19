@@ -132,6 +132,7 @@ import ch.mas.tacy.model.agentware.AgentImpl;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
 import ch.mas.tacy.model.agentware.Bid;
+import ch.mas.tacy.model.agentware.ClientPreferenceType;
 import ch.mas.tacy.model.agentware.CommandStatus;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
@@ -283,10 +284,10 @@ public class DummyAgent extends AgentImpl {
 	}
 
 	private void calculateAllocation() {
-		for (int i = 0; i < 8; i++) {
-			int inFlight = agent.getClientPreference(i, TACAgent.ARRIVAL);
-			int outFlight = agent.getClientPreference(i, TACAgent.DEPARTURE);
-			int hotel = agent.getClientPreference(i, TACAgent.HOTEL_VALUE);
+		for (int client = 0; client < 8; client++) {
+			int inFlight = agent.getClientPreference(client, ClientPreferenceType.ARRIVAL);
+			int outFlight = agent.getClientPreference(client, ClientPreferenceType.DEPARTURE);
+			int hotel = agent.getClientPreference(client, ClientPreferenceType.HOTEL_VALUE);
 			AuctionType type;
 
 			// Get the flight preferences auction and remember that we are
@@ -313,7 +314,7 @@ public class DummyAgent extends AgentImpl {
 			}
 
 			AuctionType eType = AuctionType.None;
-			while((eType = nextEntType(i, eType)) != AuctionType.None) {
+			while((eType = nextEntType(client, eType)) != AuctionType.None) {
 				auction = bestEntDay(inFlight, outFlight, eType);
 				log.finer("Adding entertainment " + eType + " on " + auction);
 				agent.setAllocation(auction, agent.getAllocation(auction) + 1);
@@ -335,9 +336,9 @@ public class DummyAgent extends AgentImpl {
 	}
 
 	private AuctionType nextEntType(int client, AuctionType lastType) {
-		int e1 = agent.getClientPreference(client, TACAgent.E1);
-		int e2 = agent.getClientPreference(client, TACAgent.E2);
-		int e3 = agent.getClientPreference(client, TACAgent.E3);
+		int e1 = agent.getClientPreference(client, ClientPreferenceType.E1);
+		int e2 = agent.getClientPreference(client, ClientPreferenceType.E2);
+		int e3 = agent.getClientPreference(client, ClientPreferenceType.E3);
 
 		// At least buy what each agent wants the most!!!
 		if ((e1 > e2) && (e1 > e3) && lastType == AuctionType.None)
@@ -347,16 +348,6 @@ public class DummyAgent extends AgentImpl {
 		if ((e3 > e1) && (e3 > e2) && lastType == AuctionType.None)
 			return AuctionType.EVENT_MUSEUM;
 		return AuctionType.None;
-	}
-
-
-
-	// -------------------------------------------------------------------
-	// Only for backward compability
-	// -------------------------------------------------------------------
-
-	public static void main (String[] args) {
-		TACAgent.main(args);
 	}
 
 } // DummyAgent

@@ -54,18 +54,6 @@ public class TACAgent implements Task, TACMessageReceiver {
 			Logger.getLogger(TACAgent.class.getName());
 
 
-	/** Client preferences types */
-	public final static int ARRIVAL = 0;
-	public final static int DEPARTURE = 1;
-	public final static int HOTEL_VALUE = 2;
-	public final static int E1 = 3;
-	public final static int E2 = 4;
-	public final static int E3 = 5;
-
-
-	/** TAC Types */
-
-
 	public final static int MIN_FLIGHT = 0;
 	public final static int MIN_HOTEL = 8;
 	public final static int MIN_ENTERTAINMENT = 16;
@@ -131,8 +119,10 @@ public class TACAgent implements Task, TACMessageReceiver {
 
 	private int lastHotelAuction = -1;
 	private int clearID = 0;
+
 	// Client Preferences
 	private int[][] clientPrefs = new int[8][6];
+
 
 	// Auction and ownership information
 	private int[] auctionIDs = new int[NO_AUCTIONS];
@@ -619,8 +609,8 @@ public class TACAgent implements Task, TACMessageReceiver {
 	 * @param type
 	 * @return
 	 */
-	public int getClientPreference(int client, int type) {
-		return clientPrefs[client][type];
+	public int getClientPreference(int client, ClientPreferenceType type) {
+		return clientPrefs[client][type.Value];
 	}
 
 	/**
@@ -1857,12 +1847,12 @@ public class TACAgent implements Task, TACMessageReceiver {
 	private void setClient(int client, int arr, int dep, int hotel,
 			int[] events) {
 		int[] prefs = clientPrefs[client];
-		prefs[ARRIVAL] = arr;
-		prefs[DEPARTURE] = dep;
-		prefs[HOTEL_VALUE] = hotel;
-		prefs[E1] = events[0];
-		prefs[E2] = events[1];
-		prefs[E3] = events[2];
+		prefs[ClientPreferenceType.ARRIVAL.Value] = arr;
+		prefs[ClientPreferenceType.DEPARTURE.Value] = dep;
+		prefs[ClientPreferenceType.HOTEL_VALUE.Value] = hotel;
+		prefs[ClientPreferenceType.E1.Value] = events[0];
+		prefs[ClientPreferenceType.E2.Value] = events[1];
+		prefs[ClientPreferenceType.E3.Value] = events[2];
 	}
 
 
