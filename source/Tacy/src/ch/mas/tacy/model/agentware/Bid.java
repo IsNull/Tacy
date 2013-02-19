@@ -26,6 +26,12 @@
 package ch.mas.tacy.model.agentware;
 import java.util.StringTokenizer;
 
+/**
+ * a bid could look like this: ((2 4) (-6 6)) where the first value of each pair describes weather it is buy bid (positive value) or a sell bid (negative value).
+ * The second value determines in every case how many items are tried to be bought or selled
+ * @author n0daft
+ *
+ */
 public class Bid {
 
 	public final static String EMPTY_BID_STRING = "()";

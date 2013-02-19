@@ -2,13 +2,33 @@ package ch.mas.tacy.model.agentware;
 
 public enum ProcessingState {
 
-
+	/**
+	 * If nothing has happend with the bid yet
+	 */
 	UNPROCESSED(0,"unprocessed"),
+	/**
+	 * If bid was rejected because of one out of 8 reasons. Specified in RejectReason.java
+	 */
 	REJECTED(1,"rejected"),
+	/**
+	 * If a bid fulfills the requirements
+	 */
 	VALID(2,"valid"),
+	/**
+	 * If the bit was withdrawn
+	 */
 	WITHDRAWN(3,"withdrawn"),
+	/**
+	 * If the bid was matched
+	 */
 	TRANSACTED(4,"transacted"),
+	/**
+	 * If the bid was replaced by another bid
+	 */
 	REPLACED(5,"replaced"),
+	/**
+	 * If the bid hasn't been matched until the auction was closed
+	 */
 	EXPIRED(6,"expired");
 
 
