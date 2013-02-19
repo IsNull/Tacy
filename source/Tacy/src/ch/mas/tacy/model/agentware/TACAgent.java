@@ -62,25 +62,9 @@ public class TACAgent implements Task, TACMessageReceiver {
 	public final static int E2 = 4;
 	public final static int E3 = 5;
 
-	/*
-	public final static int CAT_FLIGHT = 0;
-	public final static int CAT_HOTEL = 1;
-	public final static int CAT_ENTERTAINMENT = 2;
-
-	private final static String[] categoryName = {
-		"flight", "hotel", "entertainment"
-	};*/
 
 	/** TAC Types */
-	public final static int TYPE_INFLIGHT = 1;
-	public final static int TYPE_OUTFLIGHT = 0;
 
-	public final static int TYPE_GOOD_HOTEL = 1;
-	public final static int TYPE_CHEAP_HOTEL = 0;
-
-	public final static int TYPE_ALLIGATOR_WRESTLING = 1;
-	public final static int TYPE_AMUSEMENT = 2;
-	public final static int TYPE_MUSEUM = 3;
 
 	public final static int MIN_FLIGHT = 0;
 	public final static int MIN_HOTEL = 8;
@@ -589,16 +573,16 @@ public class TACAgent implements Task, TACMessageReceiver {
 	 * @param auction
 	 * @return
 	 */
-	public static int getAuctionType(int auction) {
+	public static AuctionType getAuctionType(int auction) {
 		int type = auction / 4;
 		switch (type) {
-		case 0: return TYPE_INFLIGHT;
-		case 1: return TYPE_OUTFLIGHT;
-		case 2: return TYPE_CHEAP_HOTEL;
-		case 3: return TYPE_GOOD_HOTEL;
-		case 4: return TYPE_ALLIGATOR_WRESTLING;
-		case 5: return TYPE_AMUSEMENT;
-		default: return TYPE_MUSEUM;
+		case 0: return AuctionType.INFLIGHT;
+		case 1: return AuctionType.OUTFLIGHT;
+		case 2: return AuctionType.CHEAP_HOTEL;
+		case 3: return AuctionType.GOOD_HOTEL;
+		case 4: return AuctionType.EVENT_ALLIGATOR_WRESTLING;
+		case 5: return AuctionType.EVENT_AMUSEMENT;
+		default: return AuctionType.EVENT_MUSEUM;
 		}
 	}
 	/**
@@ -611,17 +595,18 @@ public class TACAgent implements Task, TACMessageReceiver {
 	 * @param day
 	 * @return
 	 */
-	public static int getAuctionFor(AuctionCategory category, int type, int day) {
+	public static int getAuctionFor(AuctionCategory category, AuctionType type, int day) {
 		if (category == AuctionCategory.FLIGHT) {
-			if (type == 1) {
+			if (type == AuctionType.INFLIGHT) {
 				return day - 1;
 			} else {
 				return day + 2;
 			}
 		} else if (category == AuctionCategory.ENTERTAINMENT) {
-			type--;
+			type = AuctionType.byValue(type.Value-1);
 		}
-		return category.Value * 8 + type * 4 + day - 1;
+
+		return category.Value * 8 + type.Value * 4 + day - 1;
 	}
 
 
@@ -1432,7 +1417,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 		// Quote is no longer pending
 		pendingQuotes[auction] = 0L;
 
-		int oldAuctionStatus = quote.getAuctionStatus();
+		AuctionState oldAuctionStatus = quote.getAuctionStatus();
 		while (msg.nextTag()) {
 			if (msg.isTag("lastAskPrice")) {
 				quote.setAskPrice(msg.getValueAsFloat(0f));
@@ -1441,7 +1426,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 			} else if (msg.isTag("hypotheticalQuantityWon")) {
 				quote.setHQW(msg.getValueAsInt(-1));
 			} else if (msg.isTag("auctionStatus")) {
-				quote.setAuctionStatus(msg.getValueAsInt(Quote.AUCTION_INITIALIZING));
+				quote.setAuctionStatus(AuctionState.byValue(msg.getValueAsInt(AuctionState.INITIALIZING.Value)));
 			} else if (msg.isTag("nextQuoteTime")) {
 				quote.setNextQuoteTime(1000 * msg.getValueAsLong(0));
 			} else if (msg.isTag("auctionStatus")) {
@@ -1465,7 +1450,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 					"agent could not handle quoteUpdated for " + quote, e);
 		}
 		if (quote.isAuctionClosed()
-				&& (oldAuctionStatus != Quote.AUCTION_CLOSED)) {
+				&& (oldAuctionStatus != AuctionState.CLOSED)) {
 			requestTransactions(OP_CLOSE_AUCTION + auction);
 		}
 		if (tableModel != null) {
@@ -1652,7 +1637,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 		while (msg.nextTag()) {
 			if (msg.isTag("auctionIDs")) {
 				AuctionCategory cat = AuctionCategory.NONE;
-				int type = -1;
+				AuctionType type = AuctionType.None;
 				int day = -1;
 				int id = -1;
 				while (msg.nextTag() && !msg.isTag("/auctionIDs")) {
@@ -1669,7 +1654,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 							addAuction(cat, type, day, id);
 						}
 					} else if (msg.isTag("type")) {
-						type = msg.getValueAsInt(-1);
+						type = AuctionType.byValue(msg.getValueAsInt(-1));
 					} else if (msg.isTag("day")) {
 						day = msg.getValueAsInt(-1);
 					} else if (msg.isTag("category")) {
@@ -1773,13 +1758,13 @@ public class TACAgent implements Task, TACMessageReceiver {
 				}
 			} else if (msg.isTag("ticketEndowments")) {
 				int day = -1;
-				int type = -1;
+				AuctionType type = AuctionType.None;
 				int quantity = -1;
 				while (msg.nextTag() && !msg.isTag("/ticketEndowments")) {
 					if (msg.isTag("/ticketEndowmentTuple")) {
 						addOwn(AuctionCategory.ENTERTAINMENT, type, day, quantity);
 					} else if (msg.isTag("type")) {
-						type = msg.getValueAsInt(-1);
+						type = AuctionType.byValue(msg.getValueAsInt(-1));
 					} else if (msg.isTag("day")) {
 						day = msg.getValueAsInt(-1);
 					} else if (msg.isTag("quantity")) {
@@ -1848,12 +1833,12 @@ public class TACAgent implements Task, TACMessageReceiver {
 		}
 	}
 
-	private void addOwn(AuctionCategory category, int type, int day, int quantity) {
+	private void addOwn(AuctionCategory category, AuctionType type, int day, int quantity) {
 		int pos = getAuctionFor(category, type, day);
 		owns[pos] += quantity;
 	}
 
-	private void addAuction(AuctionCategory category, int type, int day, int id) {
+	private void addAuction(AuctionCategory category, AuctionType type, int day, int id) {
 		int pos = getAuctionFor(category, type, day);
 		auctionIDs[pos] = id;
 		log.finest("Auction " + pos + " (" + getAuctionTypeAsString(pos)
@@ -2081,7 +2066,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 			case 3:
 				return Float.toString(quotes[row].getBidPrice());
 			case 4:
-				return quotes[row].getAuctionStatusAsString();
+				return quotes[row].getAuctionStatus().getName();
 			case 5:
 				Bid bd = bids[row];
 				return (bd != null)

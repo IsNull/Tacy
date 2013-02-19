@@ -130,6 +130,7 @@ import java.util.logging.Logger;
 
 import ch.mas.tacy.model.agentware.AgentImpl;
 import ch.mas.tacy.model.agentware.AuctionCategory;
+import ch.mas.tacy.model.agentware.AuctionType;
 import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.CommandStatus;
 import ch.mas.tacy.model.agentware.Quote;
@@ -139,7 +140,7 @@ import ch.mas.tacy.util.ArgEnumerator;
 
 // ch.mas.tacy.DummyAgent
 /**
- * 
+ * This is the sics DummyAgent source for reference
  * @author sics
  *
  */
@@ -286,23 +287,23 @@ public class DummyAgent extends AgentImpl {
 			int inFlight = agent.getClientPreference(i, TACAgent.ARRIVAL);
 			int outFlight = agent.getClientPreference(i, TACAgent.DEPARTURE);
 			int hotel = agent.getClientPreference(i, TACAgent.HOTEL_VALUE);
-			int type;
+			AuctionType type;
 
 			// Get the flight preferences auction and remember that we are
 			// going to buy tickets for these days. (inflight=1, outflight=0)
 			int auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT,
-					TACAgent.TYPE_INFLIGHT, inFlight);
+					AuctionType.INFLIGHT, inFlight);
 			agent.setAllocation(auction, agent.getAllocation(auction) + 1);
 			auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT,
-					TACAgent.TYPE_OUTFLIGHT, outFlight);
+					AuctionType.OUTFLIGHT, outFlight);
 			agent.setAllocation(auction, agent.getAllocation(auction) + 1);
 
 			// if the hotel value is greater than 70 we will select the
 			// expensive hotel (type = 1)
 			if (hotel > 70) {
-				type = TACAgent.TYPE_GOOD_HOTEL;
+				type = AuctionType.GOOD_HOTEL;
 			} else {
-				type = TACAgent.TYPE_CHEAP_HOTEL;
+				type = AuctionType.CHEAP_HOTEL;
 			}
 			// allocate a hotel night for each day that the agent stays
 			for (int d = inFlight; d < outFlight; d++) {
@@ -311,8 +312,8 @@ public class DummyAgent extends AgentImpl {
 				agent.setAllocation(auction, agent.getAllocation(auction) + 1);
 			}
 
-			int eType = -1;
-			while((eType = nextEntType(i, eType)) > 0) {
+			AuctionType eType = AuctionType.None;
+			while((eType = nextEntType(i, eType)) != AuctionType.None) {
 				auction = bestEntDay(inFlight, outFlight, eType);
 				log.finer("Adding entertainment " + eType + " on " + auction);
 				agent.setAllocation(auction, agent.getAllocation(auction) + 1);
@@ -320,7 +321,7 @@ public class DummyAgent extends AgentImpl {
 		}
 	}
 
-	private int bestEntDay(int inFlight, int outFlight, int type) {
+	private int bestEntDay(int inFlight, int outFlight, AuctionType type) {
 		for (int i = inFlight; i < outFlight; i++) {
 			int auction = TACAgent.getAuctionFor(AuctionCategory.ENTERTAINMENT,
 					type, i);
@@ -333,19 +334,19 @@ public class DummyAgent extends AgentImpl {
 				type, inFlight);
 	}
 
-	private int nextEntType(int client, int lastType) {
+	private AuctionType nextEntType(int client, AuctionType lastType) {
 		int e1 = agent.getClientPreference(client, TACAgent.E1);
 		int e2 = agent.getClientPreference(client, TACAgent.E2);
 		int e3 = agent.getClientPreference(client, TACAgent.E3);
 
 		// At least buy what each agent wants the most!!!
-		if ((e1 > e2) && (e1 > e3) && lastType == -1)
-			return TACAgent.TYPE_ALLIGATOR_WRESTLING;
-		if ((e2 > e1) && (e2 > e3) && lastType == -1)
-			return TACAgent.TYPE_AMUSEMENT;
-		if ((e3 > e1) && (e3 > e2) && lastType == -1)
-			return TACAgent.TYPE_MUSEUM;
-		return -1;
+		if ((e1 > e2) && (e1 > e3) && lastType == AuctionType.None)
+			return AuctionType.EVENT_ALLIGATOR_WRESTLING;
+		if ((e2 > e1) && (e2 > e3) && lastType == AuctionType.None)
+			return AuctionType.EVENT_AMUSEMENT;
+		if ((e3 > e1) && (e3 > e2) && lastType == AuctionType.None)
+			return AuctionType.EVENT_MUSEUM;
+		return AuctionType.None;
 	}
 
 
