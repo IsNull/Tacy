@@ -25,11 +25,16 @@
 
 package ch.mas.tacy.model.agentware;
 
+/**
+ * A Quote represents the current state of an auction,
+ * such as the current Ask-Price which one has to pay 
+ * to get the item.
+ *
+ *
+ */
 public class Quote {
 
-
-
-	private final int auction;
+	private final Auction auction;
 	private int hqw = -1;
 	private AuctionState status = AuctionState.INITIALIZING;
 
@@ -40,7 +45,7 @@ public class Quote {
 	private float bidPrice;
 	private Bid bid;
 
-	Quote(int auctionNo) {
+	Quote(Auction auctionNo) {
 		auction = auctionNo;
 	}
 
@@ -58,6 +63,10 @@ public class Quote {
 		this.askPrice = ask;
 	}
 
+	/**
+	 * The current price of this item
+	 * @return
+	 */
 	public float getAskPrice() {
 		return askPrice;
 	}
@@ -70,7 +79,7 @@ public class Quote {
 		return bidPrice;
 	}
 
-	public int getAuction() {
+	public Auction getAuction() {
 		return auction;
 	}
 

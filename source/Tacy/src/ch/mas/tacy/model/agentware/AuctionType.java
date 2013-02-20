@@ -11,7 +11,9 @@ public enum AuctionType {
 	None(-1),
 
 
+	/** in flight */
 	INFLIGHT(1),
+	/** out flight */
 	OUTFLIGHT(0),
 
 	/** TT Towers*/

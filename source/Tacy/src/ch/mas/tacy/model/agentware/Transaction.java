@@ -27,26 +27,26 @@ package ch.mas.tacy.model.agentware;
 
 public class Transaction {
 
-  private int auction;
-  private int quantity;
-  private float price;
+	private Auction auction;
+	private int quantity;
+	private float price;
 
-  public Transaction(int auction, int quantity, float price) {
-    this.auction = auction;
-    this.price = price;
-    this.quantity = quantity;
-  }
+	public Transaction(Auction auction, int quantity, float price) {
+		this.auction = auction;
+		this.price = price;
+		this.quantity = quantity;
+	}
 
-  public int getQuantity() {
-    return quantity;
-  }
+	public int getQuantity() {
+		return quantity;
+	}
 
-  public float getPrice() {
-    return price;
-  }
+	public float getPrice() {
+		return price;
+	}
 
-  public int getAuction() {
-    return auction;
-  }
+	public Auction getAuction() {
+		return auction;
+	}
 
 } // Transaction

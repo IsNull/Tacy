@@ -53,6 +53,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 	private static final Logger log =
 			Logger.getLogger(TACAgent.class.getName());
 
+	public final static int CLIENT_COUNT = 8;
 
 	public final static int MIN_FLIGHT = 0;
 	public final static int MIN_HOTEL = 8;
@@ -71,6 +72,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 
 	/** The number of auctions in a TAC game */
 	private final static int NO_AUCTIONS = 28;
+	private final static Auction[] auctions = new Auction[NO_AUCTIONS];
 
 	/** Timeout for quotes (when waiting for reply) */
 	private final static int QUOTE_TIMEOUT = 120 * 1000;
@@ -117,7 +119,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 
 	private boolean isNextGameTaskRunning = false;
 
-	private int lastHotelAuction = -1;
+	private Auction lastHotelAuction = null;
 	private int clearID = 0;
 
 	// Client Preferences
@@ -159,41 +161,21 @@ public class TACAgent implements Task, TACMessageReceiver {
 	private int gamesPlayed = 0;
 	private int lastGamePlayed = -1;
 
+
+	static {
+		for (int i = 0; i < auctions.length; i++) {
+			auctions[i] = new Auction(i);
+		}
+	}
+
+
 	private TACAgent(AgentImpl agent) {
 		this.agent = agent;
 		for (int i = 0; i < NO_AUCTIONS; i++) {
-			quotes[i] = new Quote(i);
+			quotes[i] = new Quote(auctions[i]);
 		}
 	}
 
-	/**
-	 * This constructor is only for backward compatibility
-	 *
-	 * @deprecated
-	 */
-	@Deprecated
-	public TACAgent(AgentImpl agent, String host, int port,
-			String user, String pwd, String className) {
-		this(agent);
-		if (host != null) {
-			this.host = host;
-			this.port = port;
-		}
-		userName = user;
-		password = pwd;
-		connectionClassName = className;
-
-		// Default initialization of logging. Should this be done??? FIX THIS!!!
-		initLogging(3, 0, false);
-
-		log.fine("Starting TAC AgentWare version " + VERSION);
-		log.fine("Using agent implementation " + agent.getClass().getName());
-		log.fine("Using TAC server " + host + " at port " + port);
-
-		agent.init(this, new ArgEnumerator(new String[0], "", false));
-
-		connect();
-	}
 
 	public TACAgent(AgentImpl agent, ArgEnumerator a, Properties config) {
 		this(agent);
@@ -358,7 +340,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 				TACConnection conn = (TACConnection) value;
 				for (int i = MIN_HOTEL; i <= MAX_HOTEL; i++) {
 					if (!quotes[i].isAuctionClosed()) {
-						lastHotelAuction = i;
+						lastHotelAuction = getAuction(i);
 						requestQuote(quotes[i], conn, false);
 					}
 				}
@@ -507,14 +489,10 @@ public class TACAgent implements Task, TACMessageReceiver {
 	}
 
 
-	public int getServerAuctionID(int auction) {
-		return auctionIDs[auction];
+	public int getServerAuctionID(Auction auction) {
+		return auctionIDs[auction.getId()];
 	}
 
-
-	public static String getAuctionTypeAsString(int auction) {
-		return auctionType[auction];
-	}
 
 	/**
 	 * returns the number of auctions in TAC
@@ -524,57 +502,10 @@ public class TACAgent implements Task, TACMessageReceiver {
 		return NO_AUCTIONS;
 	}
 
-	/**
-	 * returns the category for this auction (CAT_FLIGHT, CAT_HOTEL,
-	 *    CAT_ENTERTAINMENT)
-	 * @param auction
-	 * @return
-	 */
-	public static AuctionCategory getAuctionCategory(int auction) {
-		if (auction < 8) {
-			return AuctionCategory.FLIGHT;
-		} else if (auction < 16) {
-			return AuctionCategory.HOTEL;
-		}
-		return AuctionCategory.ENTERTAINMENT;
-	}
 
 
-	/**
-	 * Returns the day of the auction in the range 1 - 5
-	 * @param auction
-	 * @return
-	 */
-	public static int getAuctionDay(int auction) {
-		int day = (auction % 4) + 1;
-		if ((auction / 4) == 1) {
-			// Outflights are specified as day 2 to day 5
-			day++;
-		}
-		return day;
-	}
 
-	/**
-	 * Returns the type of the auction.  Please note that
-	 * auctions in different categories might have the
-	 * same value as type.
-	 * 
-	 * returns the type for this auction (TYPE_INFLIGHT, TYPE_OUTFLIGHT, etc).
-	 * @param auction
-	 * @return
-	 */
-	public static AuctionType getAuctionType(int auction) {
-		int type = auction / 4;
-		switch (type) {
-		case 0: return AuctionType.INFLIGHT;
-		case 1: return AuctionType.OUTFLIGHT;
-		case 2: return AuctionType.CHEAP_HOTEL;
-		case 3: return AuctionType.GOOD_HOTEL;
-		case 4: return AuctionType.EVENT_ALLIGATOR_WRESTLING;
-		case 5: return AuctionType.EVENT_AMUSEMENT;
-		default: return AuctionType.EVENT_MUSEUM;
-		}
-	}
+
 	/**
 	 * returns the auction-id for the requested resource
 	 *   (categories are TACAgent.{CAT_FLIGHT, CAT_HOTEL, CAT_ENTERTAINMENT
@@ -585,18 +516,18 @@ public class TACAgent implements Task, TACMessageReceiver {
 	 * @param day
 	 * @return
 	 */
-	public static int getAuctionFor(AuctionCategory category, AuctionType type, int day) {
+	public static Auction getAuctionFor(AuctionCategory category, AuctionType type, int day) {
 		if (category == AuctionCategory.FLIGHT) {
 			if (type == AuctionType.INFLIGHT) {
-				return day - 1;
+				return getAuction(day - 1);
 			} else {
-				return day + 2;
+				return getAuction(day + 2);
 			}
 		} else if (category == AuctionCategory.ENTERTAINMENT) {
 			type = AuctionType.byValue(type.Value-1);
 		}
 
-		return category.Value * 8 + type.Value * 4 + day - 1;
+		return getAuction(category.Value * 8 + type.Value * 4 + day - 1);
 	}
 
 
@@ -620,8 +551,8 @@ public class TACAgent implements Task, TACMessageReceiver {
 	 * @param auctionID
 	 * @return
 	 */
-	public int getOwn(int auctionID) {
-		return owns[auctionID];
+	public int getOwn(Auction auction) {
+		return owns[auction.getId()];
 	}
 
 	/**
@@ -629,23 +560,23 @@ public class TACAgent implements Task, TACMessageReceiver {
 	 * @param auctionID
 	 * @return
 	 */
-	public int getProbablyOwn(int auctionID) {
-		Bid bid = getBid(auctionID);
+	public int getProbablyOwn(Auction auction) {
+		Bid bid = getBid(auction);
 		if (bid == null)
 			return 0;
-		Quote quote = getQuote(auctionID);
+		Quote quote = getQuote(auction);
 		if (quote.hasHQW(bid)) {
 			return quote.getHQW();
 		}
 		return bid.getQuantity();
 	}
 
-	public synchronized Bid getBid(int auctionID) {
-		return bids[auctionID];
+	public synchronized Bid getBid(Auction auction) {
+		return bids[auction.getId()];
 	}
 
-	public Quote getQuote(int auctionID) {
-		return quotes[auctionID];
+	public Quote getQuote(Auction auction) {
+		return quotes[auction.getId()];
 	}
 
 	/**
@@ -653,8 +584,8 @@ public class TACAgent implements Task, TACMessageReceiver {
 	 * @param auction
 	 * @return
 	 */
-	public int getAllocation(int auction) {
-		return allocate[auction];
+	public int getAllocation(Auction auction) {
+		return allocate[auction.getId()];
 	}
 
 	/**
@@ -662,10 +593,10 @@ public class TACAgent implements Task, TACMessageReceiver {
 	 * @param auction
 	 * @param alloc
 	 */
-	public void setAllocation(int auction, int alloc) {
-		allocate[auction] = alloc;
+	public void setAllocation(Auction auction, int alloc) {
+		allocate[auction.getId()] = alloc;
 		if (tableModel != null) {
-			tableModel.fireTableCellUpdated(auction, 8);
+			tableModel.fireTableCellUpdated(auction.getId(), 8);
 		}
 	}
 
@@ -677,7 +608,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 
 	private void clearAll() {
 		isGameStarted = false;
-		lastHotelAuction = -1;
+		lastHotelAuction = null;
 		clearID = 0;
 		for (int i = 0, n = clientPrefs.length; i < n; i++) {
 			int[] tmp = clientPrefs[i];
@@ -708,7 +639,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 		if (getGameID() < 0) {
 			throw new IllegalStateException("No game playing");
 		}
-		int auction = bid.getAuction();
+		Auction auction = bid.getAuction();
 		bid.submitted();
 		TACMessage msg = new TACMessage("submitBid");
 		prepareBidMsg(msg, bid);
@@ -726,8 +657,8 @@ public class TACAgent implements Task, TACMessageReceiver {
 		if (getGameID() < 0) {
 			throw new IllegalStateException("No game playing");
 		}
-		int auction = bid.getAuction();
-		int oldAuction = oldBid.getAuction();
+		Auction auction = bid.getAuction();
+		Auction oldAuction = oldBid.getAuction();
 		if (oldBid.isPreliminary()) {
 			throw new IllegalStateException("Old bid is still preliminary");
 		}
@@ -735,7 +666,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 			throw new IllegalArgumentException("Bids do not have same AuctionID");
 		}
 		bid.submitted();
-		if (oldBid != bids[auction]) {
+		if (oldBid != bids[auction.getId()]) {
 			bid.setRejectReason(RejectReason.ACTIVE_BID_CHANGED);
 			bid.setProcessingState(ProcessingState.REJECTED);
 			try {
@@ -779,11 +710,14 @@ public class TACAgent implements Task, TACMessageReceiver {
 			StringBuffer sb) {
 		sb.append(type).append('(');
 		for (int i = startAuction; i < endAuction; i++) {
-			Bid bid = getBid(i);
-			Quote q = getQuote(i);
-			sb.append("(").append(getAllocation(i)).append('-')
-			.append(getOwn(i)).append('|')
-			.append(getProbablyOwn(i)).append('-')
+
+			Auction auction = getAuction(i);
+
+			Bid bid = getBid(auction);
+			Quote q = getQuote(auction);
+			sb.append("(").append(getAllocation(auction)).append('-')
+			.append(getOwn(auction)).append('|')
+			.append(getProbablyOwn(auction)).append('-')
 			.append(bid != null ? bid.getQuantity() : 0);
 			if (q.isAuctionClosed()) {
 				sb.append('C');
@@ -942,7 +876,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 		if (hotelQuotes) {
 			for (int i = MIN_HOTEL; i <= MAX_HOTEL ; i++) {
 				if (!quotes[i].isAuctionClosed()) {
-					lastHotelAuction = i;
+					lastHotelAuction = getAuction(i);
 					requestQuote(quotes[i], conn, false);
 				}
 			}
@@ -950,33 +884,33 @@ public class TACAgent implements Task, TACMessageReceiver {
 	}
 
 	private void requestQuote(Quote quote, TACConnection conn, boolean force) {
-		int auction = quote.getAuction();
-		int auctionID = auctionIDs[auction];
+		Auction auction = quote.getAuction();
+		int auctionID = auctionIDs[auction.getId()];
 
 		if (auctionID > 0) {
 			long currentTime = System.currentTimeMillis();
 
 			//       log.info("requesting quote for " + auctionID);
 
-			if (!force && (pendingQuotes[auction] > 0)
-					&& ((pendingQuotes[auction] + QUOTE_TIMEOUT) > currentTime)) {
+			if (!force && (pendingQuotes[auction.getId()] > 0)
+					&& ((pendingQuotes[auction.getId()] + QUOTE_TIMEOUT) > currentTime)) {
 				// Quote is already pending and it has not passed sufficient time
 				// to regards a retransmission (no use to request quotes faster
 				// than they arrive)
-				long delay = currentTime - pendingQuotes[auction];
+				long delay = currentTime - pendingQuotes[auction.getId()];
 				if (delay > 4000) {
 					// Warn if the quote has been delayed too long
 					log.warning("still awaiting quote for auction " + auction
-							+ " (" + getAuctionTypeAsString(auction)
+							+ " (" + auction.getType()
 							+ ") after " + (delay / 1000) + " sec");
 				}
 
 			} else {
-				pendingQuotes[auction] = currentTime;
+				pendingQuotes[auction.getId()] = currentTime;
 				try {
 					TACMessage msg = new TACMessage("getQuote");
 					msg.setParameter("auctionID", auctionID);
-					Bid bid = bids[auction];
+					Bid bid = bids[auction.getId()];
 					msg.setUserData(quote);
 					if (bid != null) {
 						int id;
@@ -994,8 +928,8 @@ public class TACAgent implements Task, TACMessageReceiver {
 					conn.sendMessage(msg, this);
 				} catch (Exception e) {
 					log.log(Level.SEVERE, "could not request quote for auction "
-							+ auction + " (" + getAuctionTypeAsString(auction) + ')', e);
-					pendingQuotes[auction] = 0L;
+							+ auction + " (" + auction.getType() + ')', e);
+					pendingQuotes[auction.getId()] = 0L;
 					reset(0, conn);
 				}
 			}
@@ -1054,8 +988,8 @@ public class TACAgent implements Task, TACMessageReceiver {
 	}
 
 	private void prepareBidMsg(TACMessage msg, Bid bid) {
-		int auction = bid.getAuction();
-		msg.setParameter("auctionID", auctionIDs[auction]);
+		Auction auction = bid.getAuction();
+		msg.setParameter("auctionID", auctionIDs[auction.getId()]);
 		msg.setParameter("bidString", bid.getBidString());
 		msg.setParameter("expireTime", 0);
 		msg.setParameter("expireMode", 0);
@@ -1195,16 +1129,16 @@ public class TACAgent implements Task, TACMessageReceiver {
 	// ensure that the information about active bid, etc is correct
 	// call agent
 	private synchronized void revertBid(Bid bid, CommandStatus status) {
-		int auction = bid.getAuction();
+		Auction auction = bid.getAuction();
 
 		Bid activeBid = getBid(auction);
 
 		if (bid.same(activeBid)) {
 			activeBid = bid.getReplacing();
 			if (activeBid != null) {
-				bids[auction] = activeBid;
+				bids[auction.getId()] = activeBid;
 			} else {
-				bids[auction] = null;
+				bids[auction.getId()] = null;
 			}
 		} else if (activeBid != null) {
 			Bid child;
@@ -1267,18 +1201,18 @@ public class TACAgent implements Task, TACMessageReceiver {
 
 	private void handleTransInfo(TACMessage msg) {
 		int quantity = 0;
-		int auction = 0;
+		Auction auction = null;
 		float price = 0f;
 		CommandStatus status = CommandStatus.NO_ERROR;
 		while (msg.nextTag()) {
 			if (msg.isTag("/transInfo")) {
 				if (status == CommandStatus.NO_ERROR) {
 					Transaction trans = new Transaction(auction, quantity, price);
-					owns[auction] += quantity;
-					costs[auction] += quantity * price;
+					owns[auction.getId()] += quantity;
+					costs[auction.getId()] += quantity * price;
 					try {
 						if (tableModel != null) {
-							tableModel.fireTableRowsUpdated(auction, auction);
+							tableModel.fireTableRowsUpdated(auction.getId(), auction.getId());
 						}
 						agent.transaction(trans);
 					} catch (Exception e) {
@@ -1389,23 +1323,33 @@ public class TACAgent implements Task, TACMessageReceiver {
 		}
 	}
 
+	/**
+	 * Returns the auction of this client auction id
+	 * @param auctionId
+	 * @return
+	 */
+	public static Auction getAuction(int auctionId){
+		return (auctionId >= 0 && auctions.length > auctionId) 
+				? auctions[auctionId] : null;
+	}
+
 	private void handleQuote(TACMessage msg) {
 		Object obj = msg.getUserData();
 		Quote quote;
-		int auction;
+		Auction auction;
 		if (obj instanceof Quote) {
 			quote = (Quote) obj;
 			auction = quote.getAuction();
 		} else {
 			Bid bid = (Bid) obj;
 			auction = bid.getAuction();
-			quote = quotes[auction];
+			quote = quotes[auction.getId()];
 			quote.setHQW(-1);
 			quote.setBid(bid);
 		}
 
 		// Quote is no longer pending
-		pendingQuotes[auction] = 0L;
+		pendingQuotes[auction.getId()] = 0L;
 
 		AuctionState oldAuctionStatus = quote.getAuctionStatus();
 		while (msg.nextTag()) {
@@ -1433,7 +1377,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 
 		try {
 			if (isLastAuction(quote)) {
-				agent.quoteUpdated(getAuctionCategory(auction));
+				agent.quoteUpdated(auction.getCategory());
 			}
 		} catch (Exception e) {
 			log.log(Level.SEVERE,
@@ -1441,21 +1385,21 @@ public class TACAgent implements Task, TACMessageReceiver {
 		}
 		if (quote.isAuctionClosed()
 				&& (oldAuctionStatus != AuctionState.CLOSED)) {
-			requestTransactions(OP_CLOSE_AUCTION + auction);
+			requestTransactions(OP_CLOSE_AUCTION + auction.getId());
 		}
 		if (tableModel != null) {
-			tableModel.fireTableRowsUpdated(auction, auction);
+			tableModel.fireTableRowsUpdated(auction.getId(), auction.getId());
 		}
 	}
 
 	private boolean isLastAuction(Quote quote) {
-		int auction = quote.getAuction();
-		AuctionCategory category = getAuctionCategory(auction);
+		Auction auction = quote.getAuction();
+		AuctionCategory category = auction.getCategory();
 		long serverTime, quoteTime;
 		if (category == AuctionCategory.ENTERTAINMENT) {
-			return auction == MAX_ENTERTAINMENT;
+			return auction == getAuction(MAX_ENTERTAINMENT);
 		} else if (category == AuctionCategory.FLIGHT) {
-			return auction == MAX_FLIGHT;
+			return auction == getAuction(MAX_FLIGHT);
 		} else if (!quote.isAuctionClosed() &&
 				(quoteTime = quote.getNextQuoteTime()) > 0 &&
 				(serverTime = getServerTime()) > quoteTime) {
@@ -1510,11 +1454,8 @@ public class TACAgent implements Task, TACMessageReceiver {
 		// 3. Bid is submitted with submitBid
 		// 4. BidInfo for 2 is received
 
-		if (commandStatus != CommandStatus.NO_ERROR) {
-			log.warning("could not retrieve bidInfo for bid " + bid.getID()
-					+ " in auction " + bid.getAuction() + ": "
-					+ commandStatus);
-		} else {
+		if (commandStatus == CommandStatus.NO_ERROR) {
+
 			// Bid is ok (not preliminary or rejected)!
 			bid.setReplacing(null);
 			bid.setProcessingState(processingState);
@@ -1529,11 +1470,11 @@ public class TACAgent implements Task, TACMessageReceiver {
 				bid.setBidString(bidString);
 				recoverBid(bid);
 			} else if (!bidHash.equals(oldHash)) {
-				int auction = bid.getAuction();
+				Auction auction = bid.getAuction();
 				int clearID = this.clearID++;
 				log.finest("Requesting transactions for bid " + bid.getID()
 						+ " ClearID=" + clearID);
-				requestTransactions(OP_CLEAR_BID + (clearID << 5) + auction);
+				requestTransactions(OP_CLEAR_BID + (clearID << 5) + auction.getId());
 				bid.setBidTransacted(clearID, bidHash, bidString);
 			} else {
 				try {
@@ -1542,15 +1483,19 @@ public class TACAgent implements Task, TACMessageReceiver {
 					log.log(Level.SEVERE, "agent could not handle bidUpdated", e);
 				}
 			}
-			int row = bid.getAuction();
+			int row = bid.getAuction().getId();
 			if (tableModel != null) {
 				tableModel.fireTableRowsUpdated(row, row);
 			}
+		}else{
+			log.warning("could not retrieve bidInfo for bid " + bid.getID()
+					+ " in auction " + bid.getAuction() + ": "
+					+ commandStatus);
 		}
 	}
 
 	private synchronized void clearBid(int transID) {
-		int auction = transID & 31;
+		Auction auction = getAuction(transID & 31);
 		int clearID = transID >> 5;
 
 				Bid activeBid = getBid(auction);
@@ -1571,7 +1516,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 								log.log(Level.SEVERE, "agent could not handle bidUpdated", e);
 							}
 							if (tableModel != null) {
-								tableModel.fireTableRowsUpdated(auction, auction);
+								tableModel.fireTableRowsUpdated(auction.getId(), auction.getId());
 							}
 						}
 						activeBid = null;
@@ -1583,29 +1528,29 @@ public class TACAgent implements Task, TACMessageReceiver {
 	}
 
 	private synchronized void recoverBid(Bid bid) {
-		int auction = bid.getAuction();
-		if (bids[auction] != null) {
+		Auction auction = bid.getAuction();
+		if (bids[auction.getId()] != null) {
 			log.warning("bid already exist for auction "
-					+ getAuctionTypeAsString(auction)
+					+ auction.getType()
 					+ " when recovering bid");
 		} else {
-			bids[auction] = bid;
+			bids[auction.getId()] = bid;
 			log.finer("bid " + bid.getID() + " for "
-					+ getAuctionTypeAsString(auction) + " has been recovered");
+					+ auction.getType() + " has been recovered");
 		}
 	}
 
 	private synchronized void updateBid(Bid bid) {
-		int auction = bid.getAuction();
-		bid.setReplacing(bids[auction]);
-		bids[auction] = bid;
+		Auction auction = bid.getAuction();
+		bid.setReplacing(bids[auction.getId()]);
+		bids[auction.getId()] = bid;
 	}
 
-	private synchronized void changeBid(int auction, Bid bid, Bid newBid) {
+	private synchronized void changeBid(Auction auction, Bid bid, Bid newBid) {
 		Bid activeBid = getBid(auction);
 		if (activeBid != null) {
 			if (activeBid.same(bid)) {
-				bids[auction] = newBid;
+				bids[auction.getId()] = newBid;
 			} else {
 				Bid child;
 				while ((child = activeBid.getReplacing()) != null && !child.same(bid))
@@ -1619,7 +1564,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 		}
 	}
 
-	private void removeBid(int auction, Bid bid) {
+	private void removeBid(Auction auction, Bid bid) {
 		changeBid(auction, bid, null);
 	}
 
@@ -1797,13 +1742,14 @@ public class TACAgent implements Task, TACMessageReceiver {
 						bidID = msg.getValueAsInt(-1);
 					} else if (msg.isTag("/auctionBidIDsTuple")) {
 						if (auctionID != -1 && bidID != -1) {
-							int auction = getAuctionPos(auctionID);
+							Auction auction = getAuctionPos(auctionID);
 							Bid bid = new Bid(auction);
 							bid.setID(bidID);
 
 							// Request information about this bid
 							log.finer("recovering bid " + bidID + " for "
-									+ getAuctionTypeAsString(auction));
+									+ auction.getType());
+
 							TACMessage msg2 = new TACMessage("bidInfo");
 							msg2.setParameter("bidID", bidID);
 							msg2.setUserData(bid);
@@ -1824,24 +1770,23 @@ public class TACAgent implements Task, TACMessageReceiver {
 	}
 
 	private void addOwn(AuctionCategory category, AuctionType type, int day, int quantity) {
-		int pos = getAuctionFor(category, type, day);
-		owns[pos] += quantity;
+		Auction pos = getAuctionFor(category, type, day);
+		owns[pos.getId()] += quantity;
 	}
 
 	private void addAuction(AuctionCategory category, AuctionType type, int day, int id) {
-		int pos = getAuctionFor(category, type, day);
-		auctionIDs[pos] = id;
-		log.finest("Auction " + pos + " (" + getAuctionTypeAsString(pos)
-				+ "): " + id);
+		Auction pos = getAuctionFor(category, type, day);
+		auctionIDs[pos.getId()] = id;
+		log.finest("Auction " + pos + " (" + pos.getType() + "): " + id);
 	}
 
-	private int getAuctionPos(int id) {
+	private Auction getAuctionPos(int serverId) {
 		for (int i = 0; i < NO_AUCTIONS; i++) {
-			if (auctionIDs[i] == id) {
-				return i;
+			if (auctionIDs[i] == serverId) {
+				return getAuction(i);
 			}
 		}
-		throw new IllegalArgumentException("auction " + id + " not found");
+		throw new IllegalArgumentException("auction " + serverId + " not found");
 	}
 
 	private void setClient(int client, int arr, int dep, int hotel,
@@ -2050,7 +1995,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 			case 0:
 				return Integer.toString(auctionIDs[row]);
 			case 1:
-				return getAuctionTypeAsString(row);
+				return getAuction(row).getType();
 			case 2:
 				return Float.toString(quotes[row].getAskPrice());
 			case 3:

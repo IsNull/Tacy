@@ -129,6 +129,7 @@ package ch.mas.tacy;
 import java.util.logging.Logger;
 
 import ch.mas.tacy.model.agentware.AgentImpl;
+import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
 import ch.mas.tacy.model.agentware.Bid;
@@ -161,16 +162,16 @@ public class DummyAgent extends AgentImpl {
 
 	@Override
 	public void quoteUpdated(Quote quote) {
-		int auction = quote.getAuction();
-		AuctionCategory auctionCategory = TACAgent.getAuctionCategory(auction);
+		Auction auction = quote.getAuction();
+		AuctionCategory auctionCategory = auction.getCategory();
 		if (auctionCategory == AuctionCategory.HOTEL) {
 			int alloc = agent.getAllocation(auction);
 			if (alloc > 0 && quote.hasHQW(agent.getBid(auction)) &&
 					quote.getHQW() < alloc) {
 				Bid bid = new Bid(auction);
 				// Can not own anything in hotel auctions...
-				prices[auction] = quote.getAskPrice() + 50;
-				bid.addBidPoint(alloc, prices[auction]);
+				prices[auction.getId()] = quote.getAskPrice() + 50;
+				bid.addBidPoint(alloc, prices[auction.getId()]);
 				if (DEBUG) {
 					log.finest("submitting bid with alloc="
 							+ agent.getAllocation(auction)
@@ -183,10 +184,10 @@ public class DummyAgent extends AgentImpl {
 			if (alloc != 0) {
 				Bid bid = new Bid(auction);
 				if (alloc < 0)
-					prices[auction] = 200f - (agent.getGameTime() * 120f) / 720000;
+					prices[auction.getId()] = 200f - (agent.getGameTime() * 120f) / 720000;
 				else
-					prices[auction] = 50f + (agent.getGameTime() * 100f) / 720000;
-				bid.addBidPoint(alloc, prices[auction]);
+					prices[auction.getId()] = 50f + (agent.getGameTime() * 100f) / 720000;
+				bid.addBidPoint(alloc, prices[auction.getId()]);
 				if (DEBUG) {
 					log.finest("submitting bid with alloc="
 							+ agent.getAllocation(auction)
@@ -245,9 +246,12 @@ public class DummyAgent extends AgentImpl {
 
 	private void sendBids() {
 		for (int i = 0, n = TACAgent.getAuctionNo(); i < n; i++) {
-			int alloc = agent.getAllocation(i) - agent.getOwn(i);
+
+			Auction auction = TACAgent.getAuction(i);
+
+			int alloc = agent.getAllocation(auction) - agent.getOwn(auction);
 			float price = -1f;
-			switch (TACAgent.getAuctionCategory(i)) {
+			switch (auction.getCategory()) {
 			case FLIGHT:
 				if (alloc > 0) {
 					price = 1000;
@@ -272,11 +276,11 @@ public class DummyAgent extends AgentImpl {
 				break;
 			}
 			if (price > 0) {
-				Bid bid = new Bid(i);
+				Bid bid = new Bid(auction);
 				bid.addBidPoint(alloc, price);
 				if (DEBUG) {
-					log.finest("submitting bid with alloc=" + agent.getAllocation(i)
-							+ " own=" + agent.getOwn(i));
+					log.finest("submitting bid with alloc=" + agent.getAllocation(auction)
+							+ " own=" + agent.getOwn(auction));
 				}
 				agent.submitBid(bid);
 			}
@@ -284,7 +288,7 @@ public class DummyAgent extends AgentImpl {
 	}
 
 	private void calculateAllocation() {
-		for (int client = 0; client < 8; client++) {
+		for (int client = 0; client < TACAgent.CLIENT_COUNT; client++) {
 			int inFlight = agent.getClientPreference(client, ClientPreferenceType.ARRIVAL);
 			int outFlight = agent.getClientPreference(client, ClientPreferenceType.DEPARTURE);
 			int hotel = agent.getClientPreference(client, ClientPreferenceType.HOTEL_VALUE);
@@ -292,7 +296,7 @@ public class DummyAgent extends AgentImpl {
 
 			// Get the flight preferences auction and remember that we are
 			// going to buy tickets for these days. (inflight=1, outflight=0)
-			int auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT,
+			Auction auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT,
 					AuctionType.INFLIGHT, inFlight);
 			agent.setAllocation(auction, agent.getAllocation(auction) + 1);
 			auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT,
@@ -322,9 +326,9 @@ public class DummyAgent extends AgentImpl {
 		}
 	}
 
-	private int bestEntDay(int inFlight, int outFlight, AuctionType type) {
+	private Auction bestEntDay(int inFlight, int outFlight, AuctionType type) {
 		for (int i = inFlight; i < outFlight; i++) {
-			int auction = TACAgent.getAuctionFor(AuctionCategory.ENTERTAINMENT,
+			Auction auction = TACAgent.getAuctionFor(AuctionCategory.ENTERTAINMENT,
 					type, i);
 			if (agent.getAllocation(auction) < agent.getOwn(auction)) {
 				return auction;

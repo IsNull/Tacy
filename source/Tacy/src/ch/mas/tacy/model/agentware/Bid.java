@@ -39,7 +39,7 @@ public class Bid {
 	private final static int INCREMENT = 10;
 
 
-	private final int auction;
+	private final Auction auction;
 	private int id = NO_ID;
 	private RejectReason rejectReason;
 	private String bidHash;
@@ -63,7 +63,7 @@ public class Bid {
 	private String clearString;
 	private int clearQuantity;
 
-	public Bid(int auction) {
+	public Bid(Auction auction) {
 		this.auction = auction;
 	}
 
@@ -164,7 +164,7 @@ public class Bid {
 		return rejectReason;
 	}
 
-	public int getAuction() {
+	public Auction getAuction() {
 		return auction;
 	}
 
@@ -180,7 +180,7 @@ public class Bid {
 			throw new IllegalArgumentException("Negative price not allowed");
 		}
 		// This is a "trick" for checking that this auction allow "sell"
-		if (auction < TACAgent.MIN_ENTERTAINMENT && quantity < 0) {
+		if (auction.getId() < TACAgent.MIN_ENTERTAINMENT && quantity < 0) {
 			throw new IllegalArgumentException("Not allowed to sell in auction " +
 					auction);
 		}
