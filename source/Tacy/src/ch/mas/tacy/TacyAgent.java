@@ -170,35 +170,6 @@ public class TacyAgent extends AgentImpl  {
 	}
 
 
-	private int Price_Offset = 50;
-
-	/**
-	 * 
-	 * @param client
-	 */
-	private void allocInitialFlights(int client){
-
-		int outFlight = agent.getClientPreference(client, ClientPreferenceType.DEPARTURE);
-
-		// Get the flight preferences auction and remember that we are
-		// going to buy tickets for these days.
-		Auction auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT, AuctionType.INFLIGHT, inFlight);
-
-		Bid bid = new Bid(auction);
-		bid.addBidPoint(1, price);
-
-
-		agent.submitBid(bid);
-
-
-
-		//agent.setAllocation(auction, agent.getAllocation(auction) - Price_Offset);
-		auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT,
-				AuctionType.OUTFLIGHT, outFlight);
-		//agent.setAllocation(auction, agent.getAllocation(auction) - Price_Offset);
-
-	}
-
 
 
 	private void calculateAllocation() {
@@ -208,7 +179,7 @@ public class TacyAgent extends AgentImpl  {
 			int hotel = agent.getClientPreference(client, ClientPreferenceType.HOTEL_VALUE);
 			AuctionType type;
 
-			allocInitialFlights(client);
+
 
 			// if the hotel value is greater than 70 we will select the expensive hotel
 			if (hotel > 100) {
