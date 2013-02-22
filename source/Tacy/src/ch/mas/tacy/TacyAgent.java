@@ -24,7 +24,7 @@ import ch.mas.tacy.util.ArgEnumerator;
  */
 public class TacyAgent extends AgentImpl  {
 
-	private static final Logger log = Logger.getLogger(DummyAgent.class.getName());
+	private static final Logger log = Logger.getLogger(TacyAgent.class.getName());
 	private static final boolean DEBUG = false;
 
 	private final AuctionInformationManager auctionManager = AuctionInformationManager.instance();

@@ -71,25 +71,26 @@ public class ClientAgent {
 			return;
 		}
 
-		
+
 		Auction auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT, flightType, day);
 		Quote quote = auctionManager.getCurrentQuote(auction);
 		float currentAskPrice = quote.getAskPrice();
-				
+
 		if(virgin){
 			//set an offset of 50 to the current ask price
 			float suggestedPrice = currentAskPrice - 50;
-			
+
 			//request a pending bid
-			tradeMaster.requestItem(this, auction, 1, suggestedPrice);
+			tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
+			virgin = false; // bad bad :)
 		} else if (agent.getGameTime() > 3 * 60 * 1000 || auctionManager.priceGrowByValue(auction, 100)){
 			//replace pending bid with new one which will match the ask price immediately
-			tradeMaster.requestItem(this, auction, 1, currentAskPrice+1);
+			tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
 		}
-		
-		
-	
+
+
+
 	}
-	
+
 
 }
