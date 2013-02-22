@@ -4,6 +4,7 @@ import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
 import ch.mas.tacy.model.agentware.ClientPreferenceType;
+import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
 import ch.mas.tacy.model.auctions.TradeMaster;
 
@@ -15,12 +16,13 @@ import ch.mas.tacy.model.auctions.TradeMaster;
  */
 public class ClientAgent {
 
+	private boolean virgin = true;
 	private final TACAgent agent;
 	private final ClientPackage clientPackage;
 	private final int client;
 
 	private final TradeMaster tradeMaster = TradeMaster.instance();
-
+	private final AuctionInformationManager auctionManager = AuctionInformationManager.instance();
 
 
 	public ClientAgent(int clientID, TACAgent agent){
@@ -69,10 +71,25 @@ public class ClientAgent {
 			return;
 		}
 
+		
 		Auction auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT, flightType, day);
-
-		int suggestedPrice = 400; // todo
-		tradeMaster.requestItem(this, auction, 1, suggestedPrice);
+		Quote quote = auctionManager.getCurrentQuote(auction);
+		float currentAskPrice = quote.getAskPrice();
+				
+		if(virgin){
+			//set an offset of 50 to the current ask price
+			float suggestedPrice = currentAskPrice - 50;
+			
+			//request a pending bid
+			tradeMaster.requestItem(this, auction, 1, suggestedPrice);
+		} else if (agent.getGameTime() > 3 * 60 * 1000 || auctionManager.priceGrowByValue(auction, 100)){
+			//replace pending bid with new one which will match the ask price immediately
+			tradeMaster.requestItem(this, auction, 1, currentAskPrice+1);
+		}
+		
+		
+	
 	}
+	
 
 }

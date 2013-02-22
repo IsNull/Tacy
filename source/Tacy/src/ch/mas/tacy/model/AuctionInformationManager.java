@@ -8,6 +8,7 @@ import java.util.Map;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
+import ch.mas.tacy.model.auctions.TradeMaster;
 
 
 /**
@@ -63,6 +64,18 @@ public class AuctionInformationManager {
 	public Quote getCurrentQuote(Auction auction){
 		List<Quote> history = getHistoryOf(auction);
 		return !history.isEmpty() ? history.get(history.size()-1) : null;
+	}
+	
+	/**
+	 * Returns true if the ask price of the auction has increased by the given value
+	 * @param auction
+	 * @param value
+	 * @return
+	 */
+	public boolean priceGrowByValue(Auction auction, int value){
+		Quote firstQuote = this.getHistoryOf(auction).get(0);
+		Quote currentQuote = this.getCurrentQuote(auction);
+		return (currentQuote.getAskPrice() - firstQuote.getAskPrice()) >= value;
 	}
 
 }
