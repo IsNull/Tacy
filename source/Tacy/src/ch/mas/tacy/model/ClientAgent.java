@@ -77,10 +77,10 @@ public class ClientAgent {
 		float currentAskPrice = quote.getAskPrice();
 
 		if(virgin){
-			//set an offset of 50 to the current ask price
+			//set an offset of 50 to the initial ask price
 			float suggestedPrice = currentAskPrice - 50;
 
-			//request a pending bid
+			//request this flight to the suggest price
 			tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
 			virgin = false; // bad bad :)
 		} else if (agent.getGameTime() > 3 * 60 * 1000 || auctionManager.priceGrowByValue(auction, 100)){

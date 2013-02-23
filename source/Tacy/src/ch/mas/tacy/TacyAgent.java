@@ -13,6 +13,8 @@ import ch.mas.tacy.model.agentware.ClientPreferenceType;
 import ch.mas.tacy.model.agentware.CommandStatus;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
+import ch.mas.tacy.model.agentware.Transaction;
+import ch.mas.tacy.model.auctions.TradeMaster;
 import ch.mas.tacy.util.ArgEnumerator;
 
 /**
@@ -28,6 +30,7 @@ public class TacyAgent extends AgentImpl  {
 	private static final boolean DEBUG = false;
 
 	private final AuctionInformationManager auctionManager = AuctionInformationManager.instance();
+	private final TradeMaster tradeMaster = TradeMaster.instance();
 	private ClientManager clientManager;
 
 	private float[] prices;
@@ -38,11 +41,16 @@ public class TacyAgent extends AgentImpl  {
 		clientManager = new ClientManager(agent);
 	}
 
+	@Override
+	public void transaction(Transaction transaction) {
+		tradeMaster.onTransaction(transaction);
+	}
 
 
 	@Override
 	public void quoteUpdated(Quote quote) {
 		auctionManager.onQuoteUpdated(quote);
+
 
 		Auction auction = quote.getAuction();
 		AuctionCategory auctionCategory = auction.getCategory();

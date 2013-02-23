@@ -6,9 +6,11 @@ import java.util.List;
 import java.util.Map;
 
 import ch.mas.tacy.model.ClientAgent;
+import ch.mas.tacy.model.ItemStock;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.TACAgent;
+import ch.mas.tacy.model.agentware.Transaction;
 
 
 /**
@@ -35,13 +37,12 @@ public class TradeMaster {
 	/** holds all item requests */
 	private final Map<Auction, List<ItemRequest>> requests = new HashMap<Auction, List<ItemRequest>>();
 
-	private final Object stockLock = new Object();
-	/** holds all items we own */
-	private final Map<Auction, Integer> stock = new HashMap<Auction, Integer>();
 
-	private final Object avaiableLock = new Object();
+	/** holds all items we own */
+	private final ItemStock stock = new ItemStock();
+
 	/** holds all item which are currently not assigned to a sub agent */
-	private final Map<Auction, Integer> avaiableItems = new HashMap<Auction, Integer>();
+	private final ItemStock avaiableItems = new ItemStock();
 
 
 	private TradeMaster(){
@@ -49,8 +50,8 @@ public class TradeMaster {
 		// init stock and avaiable item store
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
 			Auction auction = TACAgent.getAuction(i);
-			stock.put(auction, 0);
-			avaiableItems.put(auction, 0);
+			stock.setQuantity(auction, 0);
+			avaiableItems.setQuantity(auction, 0);
 		}
 	}
 
@@ -75,7 +76,7 @@ public class TradeMaster {
 			request = new ItemRequest(client, auction, amount, price);
 			placeRequest(request);
 		}else{
-			//update existing request
+			// update existing request
 			request.setAmount(amount);
 			request.setPrice(price);
 			onRequestUpdated(request);
@@ -88,20 +89,20 @@ public class TradeMaster {
 	 */
 	public void pulse(){
 		reallocateItems();
-		sendBits();
+		updateBids();
 	}
 
 	/**
 	 * - Assigns available items to the ClientAgents
 	 */
 	private void reallocateItems(){
-		//TODO
+
 	}
 
 	/**
-	 * Send the necessary bits
+	 * Send the necessary bits, withdraw no longer necessary bids etc.!
 	 */
-	private void sendBits(){
+	private void updateBids(){
 		//TODO
 	}
 
@@ -152,8 +153,7 @@ public class TradeMaster {
 			break;
 
 		case TRANSACTED:
-			// we have won the auction, thus we can now update our stock details
-			onNewItemArrived(bid.getAuction(), bid.getQuantity());
+
 			break;
 
 		default:
@@ -162,37 +162,27 @@ public class TradeMaster {
 
 	}
 
+	public void onTransaction(Transaction transaction){
+		if(transaction.getQuantity() > 0){
+			// we have won and buyed the auction, thus we can now update our stock details
+			onNewItemArrived(transaction.getAuction(), transaction.getQuantity());
+		}else{
+			// 
+		}
+	}
+
+
+
 	/**
 	 * Occurs when we own n new items. 
 	 * @param auction item type
 	 * @param quantity n-new items 
 	 */
 	protected void onNewItemArrived(Auction auction, int quantity){
-		incrementStock(auction, quantity);
-		incrementAvaiable(auction, quantity);
+		stock.incrementQuantity(auction, quantity);
+		avaiableItems.incrementQuantity(auction, quantity);
 	}
 
-	/**
-	 * Increment the stock items by the given amount
-	 * @param auction
-	 * @param quantity
-	 */
-	protected void incrementStock(Auction auction, int quantity){
-		synchronized (stockLock) {
-			stock.put(auction, stock.get(auction) + quantity);
-		}
-	}
-
-	/**
-	 * Increment the stock items by the given amount
-	 * @param auction
-	 * @param quantity
-	 */
-	protected void incrementAvaiable(Auction auction, int quantity){
-		synchronized (avaiableLock) {
-			avaiableItems.put(auction, avaiableItems.get(auction) + quantity);
-		}
-	}
 
 
 	/**

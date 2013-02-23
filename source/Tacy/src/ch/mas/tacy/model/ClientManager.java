@@ -34,7 +34,7 @@ public class ClientManager {
 	 * @return
 	 */
 	public ClientAgent getClient(int clientId){
-		assert clientId >= 0 : "invalid client id"; 
+		assert clientId >= 0 && clientId < clients.length: "invalid client id"; 
 		return clients[clientId];
 	}
 
@@ -45,6 +45,10 @@ public class ClientManager {
 		for (ClientAgent client : clients) {
 			client.pulse();
 		}
+	}
+
+	public Iterable<ClientAgent> getAllClientAgents(){
+		return clients;
 	}
 
 
