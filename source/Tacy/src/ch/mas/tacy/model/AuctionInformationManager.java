@@ -5,6 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.istack.internal.FragmentContentHandler;
+
+import sun.management.resources.agent;
+
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
@@ -71,7 +75,7 @@ public class AuctionInformationManager {
 	 * @param value
 	 * @return
 	 */
-	public boolean priceGrowByValue(Auction auction, int value){
+	public boolean getPriceGrowByValue(Auction auction, int value){
 		List<Quote> history = getHistoryOf(auction);
 
 		if(history != null && !history.isEmpty()){
@@ -82,5 +86,28 @@ public class AuctionInformationManager {
 
 		return false;
 	}
+
+	/**
+	 * Returns the price growth of the given auction from the initial quote to the current quote in percent
+	 * @param auction
+	 * @return
+	 */
+	public float getPriceGrowthByRelation(Auction auction) throws NullPointerException {
+
+		List<Quote> history = getHistoryOf(auction);
+
+
+		if(history != null && !history.isEmpty()){
+			Quote firstQuote = history.get(0);
+			Quote currentQuote = this.getCurrentQuote(auction);
+
+			float difference = currentQuote.getAskPrice() - firstQuote.getAskPrice();
+			return 100f / firstQuote.getAskPrice() * difference;
+
+		}
+
+		return Float.MAX_VALUE;
+	}
+
 
 }

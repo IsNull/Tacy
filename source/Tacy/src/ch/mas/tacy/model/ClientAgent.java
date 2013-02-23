@@ -83,7 +83,7 @@ public class ClientAgent {
 			//request a pending bid
 			tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
 			virgin = false; // bad bad :)
-		} else if (agent.getGameTime() > 3 * 60 * 1000 || auctionManager.priceGrowByValue(auction, 100)){
+		} else if (agent.getGameTime() > 3 * 60 * 1000 || auctionManager.getPriceGrowByValue(auction, 100)){
 			//replace pending bid with new one which will match the ask price immediately
 			tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
 		}

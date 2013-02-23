@@ -4,6 +4,7 @@ package ch.mas.tacy.model.agentware;
 public class Auction {
 
 	private int auctionId;
+	private AuctionState state;
 
 
 	public int getId() {
@@ -13,7 +14,18 @@ public class Auction {
 
 	public Auction(int auctionId){
 		this.auctionId = auctionId;
+		this.state = AuctionState.INITIALIZING;
 	}
+	
+	public AuctionState getState() {
+		return state;
+	}
+
+
+	public void setState(AuctionState state) {
+		this.state = state;
+	}
+
 
 	@Override
 	public int hashCode(){
@@ -76,6 +88,8 @@ public class Auction {
 		default: return AuctionType.EVENT_MUSEUM;
 		}
 	}
+
+
 
 
 
