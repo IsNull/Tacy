@@ -1,5 +1,7 @@
 package ch.mas.tacy.model;
 
+import services.ServiceLocator;
+import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
@@ -21,9 +23,11 @@ public class ClientAgent {
 	private final ClientPackage clientPackage;
 	private final int client;
 
-	private final TradeMaster tradeMaster = TradeMaster.instance();
-	private final AuctionInformationManager auctionManager = AuctionInformationManager.instance();
 
+	private final Services services = Services.instance();
+	
+	private final AuctionInformationManager auctionManager = services.resolve(AuctionInformationManager.class);
+	private final TradeMaster tradeMaster = services.resolve(TradeMaster.class);
 
 	public ClientAgent(int clientID, TACAgent agent){
 		this.clientPackage = new ClientPackage(clientID);

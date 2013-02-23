@@ -27,10 +27,6 @@ import ch.mas.tacy.model.agentware.TACAgent;
  */
 public class TradeMaster {
 
-	private static TradeMaster instance = new TradeMaster();
-	public static TradeMaster instance(){
-		return instance;
-	}
 
 	/** holds all item requests */
 	private final Map<Auction, List<ItemRequest>> requests = new HashMap<Auction, List<ItemRequest>>();

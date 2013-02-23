@@ -28,7 +28,7 @@ public class TacyAgent extends AgentImpl  {
 	private static final Logger log = Logger.getLogger(TacyAgent.class.getName());
 	private static final boolean DEBUG = false;
 
-	private final AuctionInformationManager auctionManager = AuctionInformationManager.instance();
+	private AuctionInformationManager auctionManager;
 	private ClientManager clientManager;
 
 	private float[] prices;
@@ -37,6 +37,7 @@ public class TacyAgent extends AgentImpl  {
 	protected void init(ArgEnumerator args) {
 		prices = new float[TACAgent.getAuctionNo()];
 		clientManager = new ClientManager(agent);
+		auctionManager = new AuctionInformationManager(agent);
 	}
 
 
