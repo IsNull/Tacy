@@ -97,6 +97,7 @@ public class TradeMaster {
 	 */
 	private void reallocateItems(){
 
+
 	}
 
 	/**
@@ -164,10 +165,11 @@ public class TradeMaster {
 
 	public void onTransaction(Transaction transaction){
 		if(transaction.getQuantity() > 0){
-			// we have won and buyed the auction, thus we can now update our stock details
+			// we have won the auction and bought the item, thus we can now update our stock details
 			onNewItemArrived(transaction.getAuction(), transaction.getQuantity());
 		}else{
-			// 
+			// we have 
+			onNewItemArrived(transaction.getAuction(), transaction.getQuantity());
 		}
 	}
 
