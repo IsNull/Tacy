@@ -7,6 +7,7 @@ import ch.mas.tacy.model.ClientManager;
 import ch.mas.tacy.model.agentware.AgentImpl;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
+import ch.mas.tacy.model.agentware.AuctionState;
 import ch.mas.tacy.model.agentware.AuctionType;
 import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.ClientPreferenceType;
@@ -131,6 +132,9 @@ public class TacyAgent extends AgentImpl  {
 
 	@Override
 	public void auctionClosed(int auction) {
+		Auction auc = TACAgent.getAuction(auction);
+		if(auc != null)
+		auc.setState(AuctionState.CLOSED);
 		log.fine("*** Auction " + auction + " closed!");
 	}
 
