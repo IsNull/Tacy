@@ -1,6 +1,7 @@
 package ch.mas.tacy.model;
 
 import ch.mas.tacy.model.agentware.TACAgent;
+import ch.mas.tacy.util.Lists;
 
 /**
  * Manages the client agents
@@ -48,7 +49,7 @@ public class ClientManager {
 	}
 
 	public Iterable<ClientAgent> getAllClientAgents(){
-		return clients;
+		return Lists.asNoNullList(clients);
 	}
 
 
