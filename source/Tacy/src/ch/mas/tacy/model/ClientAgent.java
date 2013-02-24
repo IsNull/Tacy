@@ -45,7 +45,17 @@ public class ClientAgent {
 	 * such as the game is about to close
 	 */
 	public void pulse() {
+		setPreferences();
 		handleFlights();
+	}
+	
+	/**
+	 * sets all the clients preferences into the clients package
+	 */
+	public void setPreferences(){
+		clientPackage.setPreferredInFlight(agent.getClientPreference(client, ClientPreferenceType.ARRIVAL));
+		clientPackage.setPreferredOutFlight(agent.getClientPreference(client, ClientPreferenceType.DEPARTURE));
+		clientPackage.calculateOvernightStays();
 	}
 
 	/**
@@ -65,8 +75,30 @@ public class ClientAgent {
 	 * @return
 	 */
 	public int want(Auction item){
-		//TODO 
-		return 0;
+		int quantity = 0;
+		
+		AuctionCategory category = item.getCategory();
+		AuctionType type = item.getType();
+		int auctionday = item.getAuctionDay();
+		
+		
+		if(category.equals(AuctionCategory.FLIGHT)){
+			
+			if(type.equals(AuctionType.INFLIGHT) && !clientPackage.hasInFlight() && clientPackage.getPreferredInFlight() == auctionday){
+				quantity = 1;
+			} else if(type.equals(AuctionType.OUTFLIGHT) && !clientPackage.hasOutFlight() && clientPackage.getPreferredOutFlight() == auctionday){
+				quantity = 1;
+			}
+		} else if(category.equals(AuctionCategory.HOTEL)){
+			//overnight stay of hotel has to be within the trip and not already existing in package
+			if(clientPackage.getOvernightDays().contains(auctionday) && !clientPackage.hasHotel(auctionday)){
+				quantity = 1;
+			}
+		} else if(category.equals(AuctionCategory.ENTERTAINMENT)){
+			
+		}
+		
+		return quantity;
 	}
 
 
@@ -75,13 +107,11 @@ public class ClientAgent {
 	 */
 	private void handleFlights(){
 		if(!clientPackage.hasInFlight()){
-			int flightDay = agent.getClientPreference(client, ClientPreferenceType.ARRIVAL);
-			allocFlight(flightDay, AuctionType.INFLIGHT);
+			allocFlight(clientPackage.getPreferredInFlight(), AuctionType.INFLIGHT);
 		}
 
 		if(!clientPackage.hasOutFlight()){
-			int flightDay = agent.getClientPreference(client, ClientPreferenceType.DEPARTURE);
-			allocFlight(flightDay, AuctionType.OUTFLIGHT);
+			allocFlight(clientPackage.getPreferredOutFlight(), AuctionType.OUTFLIGHT);
 		}
 	}
 
