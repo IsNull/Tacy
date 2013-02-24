@@ -5,13 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.sun.istack.internal.FragmentContentHandler;
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.ServiceProvider;
-
-import sun.management.Agent;
-import sun.management.resources.agent;
-
-import ch.mas.tacy.TacyAgent;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
@@ -28,16 +21,16 @@ import ch.mas.tacy.model.agentware.TACAgent;
 public class AuctionInformationManager {
 
 	private final TACAgent agent;
-	
+
 	/** Maps an auctionId to the history of quotes */
 	Map<Auction, List<Quote>> quoteHistory = new HashMap<Auction, List<Quote>>();
-	
-	
-	
+
+
+
 	public AuctionInformationManager(TACAgent agent){
 
 		this.agent = agent;
-		
+
 		// init empty history
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
 			quoteHistory.put(TACAgent.getAuction(i), new ArrayList<Quote>());
@@ -111,7 +104,7 @@ public class AuctionInformationManager {
 
 		return Float.MAX_VALUE;
 	}
-	
+
 	/**
 	 * Returns the bid rate of the given auction (bids per second)
 	 * We consider auctions with a high bid rate as more risky
@@ -121,10 +114,10 @@ public class AuctionInformationManager {
 	public float getBidRate(Auction auction){
 		float bidRate = 0;
 		List<Quote> history = getHistoryOf(auction);
-		
-	
+
+
 		history.size();
-		
+
 		return bidRate;
 	}
 

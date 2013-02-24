@@ -30,8 +30,8 @@ public class TacyAgent extends AgentImpl  {
 	private static final Logger log = Logger.getLogger(TacyAgent.class.getName());
 	private static final boolean DEBUG = false;
 
-	private final AuctionInformationManager auctionManager = AuctionInformationManager.instance();
-	private final TradeMaster tradeMaster = TradeMaster.instance();
+	private final AuctionInformationManager auctionManager = Services.instance().resolve(AuctionInformationManager.class);
+	private final TradeMaster tradeMaster = Services.instance().resolve(TradeMaster.class);
 	private ClientManager clientManager;
 
 	private float[] prices;
@@ -134,7 +134,7 @@ public class TacyAgent extends AgentImpl  {
 	public void auctionClosed(int auction) {
 		Auction auc = TACAgent.getAuction(auction);
 		if(auc != null)
-		auc.setState(AuctionState.CLOSED);
+			auc.setState(AuctionState.CLOSED);
 		log.fine("*** Auction " + auction + " closed!");
 	}
 
