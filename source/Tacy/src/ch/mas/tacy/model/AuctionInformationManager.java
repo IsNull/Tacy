@@ -115,9 +115,12 @@ public class AuctionInformationManager {
 		float bidRate = 0;
 		List<Quote> history = getHistoryOf(auction);
 
-
-		history.size();
-
+		float amountOfBids = history.size();
+		float passedTime = agent.getGameTime() / 1000;
+		
+		
+		bidRate = amountOfBids / passedTime;
+	
 		return bidRate;
 	}
 
