@@ -1,8 +1,7 @@
 package ch.mas.tacy.model;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Map;
 
 /**
  * A ClientPackage represents a full package for a single Client
@@ -17,13 +16,14 @@ public class ClientPackage {
 
 	private int preferredInFlight;
 	private int preferredOutFlight;
-	
-	
-	private HashMap<Integer, Integer> actualOvernightStays;	//first value represents day, second if a hotel stay has been allocated (either 1 or 0)
+
+
+	/** first value represents day, second if a hotel stay has been allocated or not */
+	private final Map<Integer, Boolean> actualOvernightStays = new HashMap<Integer, Boolean>();
 	private int actualInFlight;
 	private int actualOutFlight;
-	
-	
+
+
 
 
 	public ClientPackage(int client){
@@ -35,19 +35,19 @@ public class ClientPackage {
 	 */
 	public void calculateOvernightStays(){
 		for(int i=preferredInFlight; i<preferredOutFlight; i++){
-			actualOvernightStays.put(i, 0);
+			actualOvernightStays.put(i, false);
 		}
 	}
-	
+
 	/**
 	 * returns true if there is already a hotel room for the given day
 	 * @param day
 	 * @return
 	 */
 	public boolean hasHotel(int day){
-		return (actualOvernightStays.get(day) == 1);		
+		return actualOvernightStays.get(day);		
 	}
-	
+
 	/**
 	 * Does this package has an in flight?
 	 * @return
@@ -104,21 +104,18 @@ public class ClientPackage {
 		this.actualOutFlight = outFlight;
 	}
 
-	
 	/**
-	 * Returns a list containing the required days for spending nights in order to make package feasible
+	 * Is the given day one of the trip
+	 * @param day
 	 * @return
 	 */
-	public List<Integer> getOvernightDays(){
-		List<Integer> overnightdays = new ArrayList<>();
-		
-		for(int i=preferredInFlight; i<preferredOutFlight; i++){
-			overnightdays.add(i);
-		}
-		
-		return overnightdays;
+	public boolean isPresenceDay(int day){
+		return actualOvernightStays.containsKey(day);
 	}
-	
+
+
+
+
 
 	public int getPreferredOutFlight() {
 		return preferredOutFlight;

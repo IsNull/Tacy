@@ -48,7 +48,7 @@ public class ClientAgent {
 		setPreferences();
 		handleFlights();
 	}
-	
+
 	/**
 	 * sets all the clients preferences into the clients package
 	 */
@@ -76,28 +76,37 @@ public class ClientAgent {
 	 */
 	public int want(Auction item){
 		int quantity = 0;
-		
+
 		AuctionCategory category = item.getCategory();
 		AuctionType type = item.getType();
 		int auctionday = item.getAuctionDay();
-		
-		
-		if(category.equals(AuctionCategory.FLIGHT)){
-			
+
+
+		switch(category){
+
+		case FLIGHT:
 			if(type.equals(AuctionType.INFLIGHT) && !clientPackage.hasInFlight() && clientPackage.getPreferredInFlight() == auctionday){
 				quantity = 1;
 			} else if(type.equals(AuctionType.OUTFLIGHT) && !clientPackage.hasOutFlight() && clientPackage.getPreferredOutFlight() == auctionday){
 				quantity = 1;
 			}
-		} else if(category.equals(AuctionCategory.HOTEL)){
+			break;
+
+
+		case HOTEL:
 			//overnight stay of hotel has to be within the trip and not already existing in package
-			if(clientPackage.getOvernightDays().contains(auctionday) && !clientPackage.hasHotel(auctionday)){
+			if(clientPackage.isPresenceDay(auctionday) && !clientPackage.hasHotel(auctionday)){
 				quantity = 1;
 			}
-		} else if(category.equals(AuctionCategory.ENTERTAINMENT)){
-			
+			break;
+
+		case ENTERTAINMENT:
+
+			break;
+
 		}
-		
+
+
 		return quantity;
 	}
 
