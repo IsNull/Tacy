@@ -5,8 +5,7 @@ import ch.mas.tacy.util.Lists;
 
 /**
  * Manages the client agents
- * 
- * This class is a singleton
+ *
  * 
  * @author P.Büttiker
  *

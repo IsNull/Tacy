@@ -15,6 +15,7 @@ import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.TACAgent;
 import ch.mas.tacy.model.agentware.Transaction;
+import ch.mas.tacy.util.Lists;
 
 
 /**
@@ -33,6 +34,7 @@ import ch.mas.tacy.model.agentware.Transaction;
  */
 public class TradeMaster {
 
+	private final TACAgent agent;
 
 	/** holds all item requests */
 	private final Map<Auction, List<ItemRequest>> requests = new HashMap<Auction, List<ItemRequest>>();
@@ -45,7 +47,9 @@ public class TradeMaster {
 	private final ItemStock avaiableItems = new ItemStock();
 
 
-	private TradeMaster(){
+	public TradeMaster(TACAgent agent){
+
+		this.agent = agent;
 
 		// init stock and avaiable item store
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
@@ -96,20 +100,53 @@ public class TradeMaster {
 
 	/**
 	 * - Assigns available items to the ClientAgents
+	 * Client request will become undone when an desired item was assigned to one of the clients
 	 */
 	private void reallocateItems(){
 
 		ClientManager clientManager = Services.instance().resolve(ClientManager.class);
-
 		packageAllocator.assignItemsToClientPackages(clientManager.getAllClientAgents(), avaiableItems);
 
 	}
 
 	/**
-	 * Send the necessary bits, withdraw no longer necessary bids etc.!
+	 * Send the necessary bids, withdraw no longer necessary bids etc.!
+	 * 
+	 * 
+	 * 
 	 */
 	private void updateBids(){
-		//TODO
+
+		// handle Bids if necessary
+		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
+			Auction auction = TACAgent.getAuction(i);
+
+			List<ItemRequest> pendingRequests = findAllRequests(auction);
+
+			int requested_quantity = sumQuantity(pendingRequests);
+			Bid currentBid = agent.getBid(auction);
+
+			float suggestedPrice = maxPrice(pendingRequests);
+
+			Bid newBid = new Bid(auction);
+			newBid.addBidPoint(requested_quantity, suggestedPrice);
+
+
+			if(currentBid == null){ // no current Bid
+
+				if(requested_quantity > 0){
+					agent.submitBid(newBid);
+				}
+			}else{
+				// we have a current bid
+				if(currentBid.getQuantity() != requested_quantity || currentBid.getMaxPrice() != suggestedPrice){
+					//which does no longer match.
+					agent.replaceBid(currentBid, newBid);
+				}
+			}
+		}
+
+
 	}
 
 	protected void placeRequest(ItemRequest request) {
@@ -135,6 +172,43 @@ public class TradeMaster {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Searches for all requests of the same item, given as auction
+	 * @param auction
+	 * @return
+	 */
+	public List<ItemRequest> findAllRequests(Auction auction){
+		if(requests.containsKey(auction)){
+			return Lists.newList(requests.get(auction));
+		}
+		return new ArrayList<ItemRequest>();
+	}
+
+	/**
+	 * Sum of all given requests
+	 * @param requests
+	 * @return
+	 */
+	private int sumQuantity(Iterable<ItemRequest> requests){
+		int quantity = 0;
+		if(requests != null){
+			for (ItemRequest itemRequest : requests) {
+				quantity += itemRequest.getAmount();
+			}
+		}
+		return quantity;
+	}
+
+	private float maxPrice(Iterable<ItemRequest> requests){
+		float price = 0;
+		if(requests != null){
+			for (ItemRequest itemRequest : requests) {
+				price = Math.max(price, itemRequest.getPrice());
+			}
+		}
+		return price;
 	}
 
 

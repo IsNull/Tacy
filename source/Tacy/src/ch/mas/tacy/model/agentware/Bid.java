@@ -207,6 +207,22 @@ public class Bid {
 		return q;
 	}
 
+	/**
+	 * Returns the highest bit price
+	 * @return
+	 */
+	public float getMaxPrice() {
+		int len = this.len;
+		int[] quant = quantity;
+		float maxPrice = 0;
+		if (price != null) {
+			for (int i = 0; i < len; i++) {
+				maxPrice = Math.max(maxPrice, price[i]);
+			}
+		}
+		return maxPrice;
+	}
+
 	public int getQuantity(int index) {
 		if (quantity == null) {
 			throw new IndexOutOfBoundsException("Index: " + index
