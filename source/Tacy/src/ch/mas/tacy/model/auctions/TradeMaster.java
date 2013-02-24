@@ -5,7 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.mas.tacy.Services;
 import ch.mas.tacy.model.ClientAgent;
+import ch.mas.tacy.model.ClientManager;
+import ch.mas.tacy.model.ClientPackageAllocationStrategy;
+import ch.mas.tacy.model.IClientPackageAllocationStrategy;
 import ch.mas.tacy.model.ItemStock;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.Bid;
@@ -88,11 +92,16 @@ public class TradeMaster {
 		updateBids();
 	}
 
+	private IClientPackageAllocationStrategy packageAllocator = new ClientPackageAllocationStrategy();
+
 	/**
 	 * - Assigns available items to the ClientAgents
 	 */
 	private void reallocateItems(){
 
+		ClientManager clientManager = Services.instance().resolve(ClientManager.class);
+
+		packageAllocator.assignItemsToClientPackages(clientManager.getAllClientAgents(), avaiableItems);
 
 	}
 

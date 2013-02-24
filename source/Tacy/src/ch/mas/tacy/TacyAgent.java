@@ -30,8 +30,8 @@ public class TacyAgent extends AgentImpl  {
 	private static final Logger log = Logger.getLogger(TacyAgent.class.getName());
 	private static final boolean DEBUG = false;
 
-	private final AuctionInformationManager auctionManager = Services.instance().resolve(AuctionInformationManager.class);
-	private final TradeMaster tradeMaster = Services.instance().resolve(TradeMaster.class);
+	private AuctionInformationManager auctionManager; 
+	private TradeMaster tradeMaster; 
 	private ClientManager clientManager;
 
 	private float[] prices;
@@ -39,7 +39,13 @@ public class TacyAgent extends AgentImpl  {
 	@Override
 	protected void init(ArgEnumerator args) {
 		prices = new float[TACAgent.getAuctionNo()];
-		clientManager = new ClientManager(agent);
+
+		Services.instance().createServices(agent);
+
+		auctionManager = Services.instance().resolve(AuctionInformationManager.class);
+		tradeMaster = Services.instance().resolve(TradeMaster.class);
+		clientManager = Services.instance().resolve(ClientManager.class);
+
 	}
 
 	@Override

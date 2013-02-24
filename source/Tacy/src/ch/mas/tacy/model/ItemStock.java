@@ -38,13 +38,25 @@ public class ItemStock {
 
 
 	/**
-	 * Set the quantity of the given item type
+	 * Set the quantity of the given item type in this stock
 	 * @param auction item type
 	 * @param quantity
 	 */
 	public void setQuantity(Auction auction, int quantity){
 		synchronized (stockLock) {
 			stock.put(auction, quantity);
+		}
+	}
+
+
+	/**
+	 * Returns the quantity of the given item type in this stock
+	 * @param auction
+	 * @return
+	 */
+	public int getQuantity(Auction auction) {
+		synchronized (stockLock) {
+			return stock.get(auction);
 		}
 	}
 

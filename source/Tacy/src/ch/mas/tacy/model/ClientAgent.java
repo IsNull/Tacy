@@ -1,6 +1,5 @@
 package ch.mas.tacy.model;
 
-import services.ServiceLocator;
 import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
@@ -25,7 +24,7 @@ public class ClientAgent {
 
 
 	private final Services services = Services.instance();
-	
+
 	private final AuctionInformationManager auctionManager = services.resolve(AuctionInformationManager.class);
 	private final TradeMaster tradeMaster = services.resolve(TradeMaster.class);
 
@@ -48,6 +47,28 @@ public class ClientAgent {
 	public void pulse() {
 		handleFlights();
 	}
+
+	/**
+	 * Occurs when there is a change in a item
+	 * @param item specifies the item type
+	 * @param quantity a positive quantity means increment, negative is decrement
+	 */
+	public void onTransaction(Auction item, int quantity){
+		//TODO probably adjust client request right now?!z
+	}
+
+	/**
+	 * Checks if this client wants the given item(Auction) type
+	 * and returns the amount of items. 
+	 * 
+	 * @param item returns the quantity of items this client wants
+	 * @return
+	 */
+	public int want(Auction item){
+		//TODO 
+		return 0;
+	}
+
 
 	/**
 	 * Handle the flights
