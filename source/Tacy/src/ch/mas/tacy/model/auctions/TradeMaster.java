@@ -77,6 +77,7 @@ public class TradeMaster {
 
 		if(request == null)
 		{
+			// this is a new request
 			request = new ItemRequest(client, auction, amount, price);
 			placeRequest(request);
 		}else{
@@ -134,7 +135,7 @@ public class TradeMaster {
 
 			if(currentBid == null){ // no current Bid
 
-				if(requested_quantity > 0){
+				if(requested_quantity != 0){
 					agent.submitBid(newBid);
 				}
 			}else{
