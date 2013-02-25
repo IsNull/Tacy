@@ -8,6 +8,12 @@ import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
 
+/**
+ * 
+ * 
+ * @author P.Büttiker
+ *
+ */
 public class QuoteChangeManager  implements IQuoteChangeListener{
 
 	private static class QuoteTuple{
