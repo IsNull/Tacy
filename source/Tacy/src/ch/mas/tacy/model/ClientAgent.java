@@ -228,7 +228,7 @@ public class ClientAgent {
 		List<Integer> missingDays = clientPackage.getNeedForHotelDays();
 
 		for(Integer day : missingDays){
-			Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, getGoodOrBadHotel(), day);
+			Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, isTTProfitable(), day);
 			Quote quote = auctionManager.getCurrentQuote(auction);
 			int alloc = agent.getAllocation(auction);
 			if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
@@ -269,9 +269,28 @@ public class ClientAgent {
 	 * returns for which hotel type we have to buy rooms (based on clients premium value for hotels)
 	 * @return
 	 */
-	private AuctionType getGoodOrBadHotel(){
+	private AuctionType isTTProfitable(){
 
-		return (clientPackage.getPvHotel() > 70) ? AuctionType.GOOD_HOTEL : AuctionType.CHEAP_HOTEL;
+		//if the difference between the total cost for SS and the total cost for TT is smaller than the clients
+		//premium value there is no point in buying TT rooms
+		
+		int hypotheticalCostSS = 0;
+		int hypotheticalCostTT = 0;
+		
+		List<Integer> missingDays = clientPackage.getNeedForHotelDays();
+		
+		for(Integer day : missingDays){
+			Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.CHEAP_HOTEL, day);
+			hypotheticalCostSS += auctionManager.getCurrentQuote(auction).getAskPrice();
+			
+			auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.GOOD_HOTEL, day);
+			hypotheticalCostTT += auctionManager.getCurrentQuote(auction).getAskPrice();			
+		}
+		
+		int difference = hypotheticalCostTT-hypotheticalCostSS; //could also be negative which would mean that the current price for staying in TT is cheaper than for staying in ss.
+		
+		
+		return (clientPackage.getPvHotel() > difference) ? AuctionType.GOOD_HOTEL : AuctionType.CHEAP_HOTEL;
 
 	}
 
