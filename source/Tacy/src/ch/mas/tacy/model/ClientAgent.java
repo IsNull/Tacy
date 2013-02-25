@@ -3,11 +3,7 @@ package ch.mas.tacy.model;
 
 import java.util.List;
 
-import com.sun.xml.internal.bind.v2.TODO;
-import com.sun.xml.internal.bind.v2.model.annotation.Quick;
-
 import ch.mas.tacy.Services;
-import ch.mas.tacy.TacyAgent;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
@@ -138,30 +134,47 @@ public class ClientAgent {
 		switch(category){
 
 		case FLIGHT:
-			if(type.equals(AuctionType.INFLIGHT) && !clientPackage.hasInFlight() && clientPackage.getPreferredInFlight() == auctionday){
+			if(type.equals(AuctionType.INFLIGHT) &&
+					!clientPackage.hasInFlight() && clientPackage.getPreferredInFlight() == auctionday){
 				quantity = 1;
-			} else if(type.equals(AuctionType.OUTFLIGHT) && !clientPackage.hasOutFlight() && clientPackage.getPreferredOutFlight() == auctionday){
+			} else if(type.equals(AuctionType.OUTFLIGHT) && 
+					!clientPackage.hasOutFlight() && clientPackage.getPreferredOutFlight() == auctionday){
 				quantity = 1;
 			}
 			break;
 
 
 		case HOTEL:
-			//overnight stay of hotel has to be within the trip, must be of the same hotel type which already exists in the package and not already existing in package
-			if(clientPackage.isPresenceDay(auctionday) && (clientPackage.getCurrenHotelType().equals(type) || clientPackage.getCurrenHotelType().equals(AuctionType.None)) &&!clientPackage.hasHotel(auctionday)){
-				quantity = 1;
+
+			if(clientPackage.isPresenceDay(auctionday) && !clientPackage.hasHotel(auctionday))
+			{
+				// we need a hotel at this day
+
+				// lets see if the hotel type matches
+
+				// overnight stay of hotel has to be within the trip,
+				// must be of the same hotel type which already exists
+				// in the package and not already existing in package
+				if(clientPackage.getCurrenHotelType().equals(type) || clientPackage.getCurrenHotelType().equals(AuctionType.None)){
+					quantity = 1;
+				}
 			}
 			break;
 
 		case ENTERTAINMENT:
+
 			//client wants item if: event type does not already exist, there is no event on given day, premium value for given type is not 0
-			if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPackage.getPvAW() != 0 && !clientPackage.hasEvent(auctionday) && !clientPackage.hasSameEvent(type)){
-				quantity = 1;
-			}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPackage.getPvAP() != 0 && !clientPackage.hasEvent(auctionday) && !clientPackage.hasSameEvent(type)){
-				quantity = 1;
-			}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPackage.getPvMU() != 0 && !clientPackage.hasEvent(auctionday) && !clientPackage.hasSameEvent(type)){
-				quantity = 1;
+
+			if(!clientPackage.hasEventAt(auctionday) && !clientPackage.hasSameEvent(type)){
+				if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPackage.getPvAW() != 0){
+					quantity = 1;
+				}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPackage.getPvAP() != 0){
+					quantity = 1;
+				}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPackage.getPvMU() != 0){
+					quantity = 1;
+				}
 			}
+
 
 			break;
 
@@ -215,9 +228,6 @@ public class ClientAgent {
 			//replace pending bid with new one which will match the ask price immediately
 			tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
 		}
-
-
-
 	}
 
 
@@ -271,8 +281,8 @@ public class ClientAgent {
 	 */
 	private AuctionType isTTProfitable(){
 
-		
-		if(clientPackage.getCurrenHotelType().equals(AuctionType.None)){
+
+		if(clientPackage.getCurrenHotelType() == AuctionType.None){
 
 			//if the difference between the total cost for SS and the total cost for TT is smaller than the clients
 			//premium value there is no point in buying TT rooms
@@ -293,7 +303,7 @@ public class ClientAgent {
 
 
 			return (clientPackage.getPvHotel() > difference) ? AuctionType.GOOD_HOTEL : AuctionType.CHEAP_HOTEL;
-		
+
 		} else {
 
 			return clientPackage.getCurrenHotelType();

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import ch.mas.tacy.model.agentware.AuctionType;
 
@@ -27,10 +26,11 @@ public class ClientPackage {
 	private int pvMU;
 
 
-	/** first value represents day, second if a corresponding hotel stay has been allocated or not */
-	private final Map<Integer, Boolean> actualHotelRooms = new HashMap<Integer, Boolean>();
 	/** first vaule represents day, second determines which type of hotel it is*/
 	private final Map<Integer, AuctionType> actualHotelRoomsTypes = new HashMap<Integer, AuctionType>();
+
+
+
 	/** first value represents day, second if a corresponding event has been allocated or not (either EVENT_ALLIGATOR_WRESTLING, EVENT_AMUSEMENT, EVENT_MUSEUM or None */
 	private final Map<Integer, AuctionType> actualEvents = new HashMap<Integer, AuctionType>();
 	private int actualInFlight;
@@ -48,7 +48,6 @@ public class ClientPackage {
 	 */
 	public void calculateNeededHotelRooms(){
 		for(int i=preferredInFlight; i<preferredOutFlight; i++){
-			actualHotelRooms.put(i, false);
 			actualHotelRoomsTypes.put(i, AuctionType.None);
 			actualEvents.put(i, AuctionType.None);
 		}
@@ -60,7 +59,7 @@ public class ClientPackage {
 	 * @return
 	 */
 	public boolean hasHotel(int day){
-		return actualHotelRooms.get(day);		
+		return  actualHotelRoomsTypes.containsKey(day) ? (actualHotelRoomsTypes.get(day) != AuctionType.None) : false;	
 	}
 
 	/**
@@ -68,8 +67,8 @@ public class ClientPackage {
 	 * @param day
 	 * @return
 	 */
-	public boolean hasEvent(int day){
-		return (!actualEvents.get(day).equals(AuctionType.None));
+	public boolean hasEventAt(int day){
+		return actualEvents.containsKey(day) ? (actualEvents.get(day) != AuctionType.None) : false;
 	}
 
 	/**
@@ -143,18 +142,13 @@ public class ClientPackage {
 	 * @return
 	 */
 	public boolean isPresenceDay(int day){
-		return actualHotelRooms.containsKey(day);
+		return actualHotelRoomsTypes.containsKey(day);
 	}
 
 	public void setActualHotelRooms(int day, AuctionType type){
-		actualHotelRooms.put(day, true);
 		actualHotelRoomsTypes.put(day, type);
 	}
-	
-	public Set<Integer> getActualHotelRooms() {
-		return actualHotelRooms.keySet();
-	}
-	
+
 	public AuctionType getCurrenHotelType(){
 		if(actualHotelRoomsTypes.containsValue(AuctionType.GOOD_HOTEL)){
 			return AuctionType.GOOD_HOTEL;
@@ -164,26 +158,26 @@ public class ClientPackage {
 			return AuctionType.None;
 		}
 	}
-	
+
 	/**
 	 * returns on which days hotel rooms are still needed
 	 * @return
 	 */
 	public List<Integer> getNeedForHotelDays(){
-		
+
 		List<Integer> missingDays = new ArrayList<Integer>();
-		
-		for(Integer day : actualHotelRooms.keySet()){
-			if(actualHotelRooms.get(day) == false){
+
+		for(Integer day : actualHotelRoomsTypes.keySet()){
+			if(actualHotelRoomsTypes.get(day) == AuctionType.None){
 				missingDays.add(day);
 			}
 		}
-		
+
 		return missingDays;
 	}
-	
+
 	public boolean hasAtLeastOneHotelRoom(){
-		return (actualHotelRooms.size() > 0);
+		return (actualHotelRoomsTypes.size() > 0);
 	}
 
 
