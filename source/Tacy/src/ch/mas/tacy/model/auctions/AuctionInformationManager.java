@@ -98,10 +98,10 @@ public class AuctionInformationManager {
 	 * @param auction
 	 * @return
 	 */
-	public float getPriceGrowthByRelation(Auction auction) throws NullPointerException {
+	public float getPriceGrowthByRelation(Auction auction) {
+		assert auction != null : "auction can not be null!";
 
 		List<Quote> history = getHistoryOf(auction);
-
 
 		if(history != null && !history.isEmpty()){
 			Quote firstQuote = history.get(0);
@@ -109,10 +109,9 @@ public class AuctionInformationManager {
 
 			float difference = currentQuote.getAskPrice() - firstQuote.getAskPrice();
 			return 100f / firstQuote.getAskPrice() * difference;
-
 		}
 
-		return Float.MAX_VALUE;
+		return Float.NaN;
 	}
 
 	/**
