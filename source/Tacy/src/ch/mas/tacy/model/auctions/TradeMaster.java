@@ -260,7 +260,7 @@ public class TradeMaster {
 
 
 	/**
-	 * transact the given amount of items.
+	 * transact the given amount of items to this tradmaster
 	 * @param auction item type
 	 * @param quantity n-new items 
 	 */
