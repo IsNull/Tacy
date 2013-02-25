@@ -4,6 +4,7 @@ package ch.mas.tacy.model;
 import java.util.List;
 
 import com.sun.xml.internal.bind.v2.TODO;
+import com.sun.xml.internal.bind.v2.model.annotation.Quick;
 
 import ch.mas.tacy.Services;
 import ch.mas.tacy.TacyAgent;
@@ -92,6 +93,7 @@ public class ClientAgent {
 		int auctionday = item.getAuctionDay();
 
 		//withdraw the corresponding request
+		
 		tradeMaster.updateRequestedItem(this, item, quantity, 0);
 
 
@@ -222,13 +224,20 @@ public class ClientAgent {
 
 	private void handleHotels(){
 
-		
+
 		List<Integer> missingDays = clientPackage.getNeedForHotelDays();
+
 		for(Integer day : missingDays){
-			Auction auction = agent.getAuctionFor(AuctionCategory.HOTEL, getGoodOrBadHotel(), day);
+			Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, getGoodOrBadHotel(), day);
 			Quote quote = auctionManager.getCurrentQuote(auction);
+			int alloc = agent.getAllocation(auction);
+			if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
+
+				tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
+			}
+
 		}
-	
+
 
 		/*
 		Auction auction = quote.getAuction();
@@ -249,23 +258,20 @@ public class ClientAgent {
 				agent.submitBid(bid);
 			}
 		 */
+
 	}
 
 	public void allocHotels(int day, AuctionType hotelType){
 
-		Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.CHEAP_HOTEL, day);
-		Quote quote = auctionManager.getCurrentQuote(auction);
-		float currentAskPrice = quote.getAskPrice();
-		
-	
 	}
 
-	public AuctionType getGoodOrBadHotel(){
-
+	/**
+	 * returns for which hotel type we have to buy rooms (based on clients premium value for hotels)
+	 * @return
+	 */
+	private AuctionType getGoodOrBadHotel(){
 
 		return (clientPackage.getPvHotel() > 70) ? AuctionType.GOOD_HOTEL : AuctionType.CHEAP_HOTEL;
-
-
 
 	}
 
