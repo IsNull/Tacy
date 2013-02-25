@@ -2,7 +2,6 @@ package ch.mas.tacy;
 
 import java.util.logging.Logger;
 
-import ch.mas.tacy.model.AuctionInformationManager;
 import ch.mas.tacy.model.ClientManager;
 import ch.mas.tacy.model.agentware.AgentImpl;
 import ch.mas.tacy.model.agentware.Auction;
@@ -15,6 +14,7 @@ import ch.mas.tacy.model.agentware.CommandStatus;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
 import ch.mas.tacy.model.agentware.Transaction;
+import ch.mas.tacy.model.auctions.AuctionInformationManager;
 import ch.mas.tacy.model.auctions.TradeMaster;
 import ch.mas.tacy.util.ArgEnumerator;
 
@@ -50,7 +50,7 @@ public class TacyAgent extends AgentImpl  {
 
 	@Override
 	public void transaction(Transaction transaction) {
-		tradeMaster.onTransaction(transaction);
+		tradeMaster.onServerTransaction(transaction);
 	}
 
 

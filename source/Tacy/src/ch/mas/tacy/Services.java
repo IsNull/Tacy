@@ -2,10 +2,10 @@ package ch.mas.tacy;
 
 import archimedesJ.services.ILocator;
 import archimedesJ.services.ServiceLocator;
-import ch.mas.tacy.model.AuctionInformationManager;
 import ch.mas.tacy.model.ClientManager;
 import ch.mas.tacy.model.RiskManager;
 import ch.mas.tacy.model.agentware.TACAgent;
+import ch.mas.tacy.model.auctions.AuctionInformationManager;
 import ch.mas.tacy.model.auctions.TradeMaster;
 
 

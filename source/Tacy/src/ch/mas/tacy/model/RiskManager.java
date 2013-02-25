@@ -6,6 +6,7 @@ import java.util.List;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionState;
+import ch.mas.tacy.model.auctions.AuctionInformationManager;
 
 
 

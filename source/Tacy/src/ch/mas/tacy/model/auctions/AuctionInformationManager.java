@@ -1,4 +1,4 @@
-package ch.mas.tacy.model;
+package ch.mas.tacy.model.auctions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,6 +22,8 @@ public class AuctionInformationManager {
 
 	private final TACAgent agent;
 
+	private final List<IQuoteChangeListener> quoteChangeListeners = new ArrayList<IQuoteChangeListener>();
+
 	/** Maps an auctionId to the history of quotes */
 	Map<Auction, List<Quote>> quoteHistory = new HashMap<Auction, List<Quote>>();
 
@@ -41,6 +43,10 @@ public class AuctionInformationManager {
 		return quoteHistory.get(auction);
 	}
 
+	public void registerQuoteChangeListener(IQuoteChangeListener listener){
+		quoteChangeListeners.add(listener);
+	}
+
 	/**
 	 * Occurs when a Quote has been updated
 	 * @param quote
@@ -49,6 +55,10 @@ public class AuctionInformationManager {
 		List<Quote> history = getHistoryOf(quote.getAuction());
 		if(history != null){
 			history.add(quote);
+		}
+
+		for (IQuoteChangeListener listener : quoteChangeListeners) {
+			listener.onQuoteUpdated(quote);
 		}
 	}
 
@@ -117,10 +127,10 @@ public class AuctionInformationManager {
 
 		float amountOfBids = history.size();
 		float passedTime = agent.getGameTime() / 1000;
-		
-		
+
+
 		bidRate = amountOfBids / passedTime;
-	
+
 		return bidRate;
 	}
 

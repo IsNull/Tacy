@@ -243,24 +243,28 @@ public class TradeMaster {
 
 	}
 
-	public void onTransaction(Transaction transaction){
+	/**
+	 * Occurs when a server side transaction has been made
+	 * @param transaction
+	 */
+	public void onServerTransaction(Transaction transaction){
 		if(transaction.getQuantity() > 0){
 			// we have won the auction and bought the item, thus we can now update our stock details
-			onNewItemArrived(transaction.getAuction(), transaction.getQuantity());
+			transact(transaction.getAuction(), transaction.getQuantity());
 		}else{
 			// we have 
-			onNewItemArrived(transaction.getAuction(), transaction.getQuantity());
+			transact(transaction.getAuction(), transaction.getQuantity());
 		}
 	}
 
 
 
 	/**
-	 * Occurs when we own n new items. 
+	 * transact the given amount of items.
 	 * @param auction item type
 	 * @param quantity n-new items 
 	 */
-	protected void onNewItemArrived(Auction auction, int quantity){
+	protected void transact(Auction auction, int quantity){
 		stock.incrementQuantity(auction, quantity);
 		avaiableItems.incrementQuantity(auction, quantity);
 	}

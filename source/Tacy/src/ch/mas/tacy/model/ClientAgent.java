@@ -7,10 +7,11 @@ import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
-import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.ClientPreferenceType;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
+import ch.mas.tacy.model.auctions.AuctionInformationManager;
+import ch.mas.tacy.model.auctions.QuoteChangeManager;
 import ch.mas.tacy.model.auctions.TradeMaster;
 
 /**
@@ -32,10 +33,15 @@ public class ClientAgent {
 	private final AuctionInformationManager auctionManager = services.resolve(AuctionInformationManager.class);
 	private final TradeMaster tradeMaster = services.resolve(TradeMaster.class);
 
+	private final QuoteChangeManager quoteChangeManager = new QuoteChangeManager();
+
+
 	public ClientAgent(int clientID, TACAgent agent){
 		this.clientPackage = new ClientPackage(clientID);
 		client = clientID;
 		this.agent = agent;
+
+		auctionManager.registerQuoteChangeListener(quoteChangeManager);
 
 		setPreferences();
 	}
