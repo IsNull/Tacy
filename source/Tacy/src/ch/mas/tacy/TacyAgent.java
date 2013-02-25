@@ -57,8 +57,10 @@ public class TacyAgent extends AgentImpl  {
 	@Override
 	public void quoteUpdated(Quote quote) {
 		auctionManager.onQuoteUpdated(quote);
+		clientManager.pulseAll();
 
 
+		/*
 		Auction auction = quote.getAuction();
 		AuctionCategory auctionCategory = auction.getCategory();
 		if (auctionCategory == AuctionCategory.HOTEL) {
@@ -93,6 +95,7 @@ public class TacyAgent extends AgentImpl  {
 				agent.submitBid(bid);
 			}
 		}
+		 */
 	}
 
 	@Override
