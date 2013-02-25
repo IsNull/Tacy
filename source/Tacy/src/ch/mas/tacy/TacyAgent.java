@@ -129,7 +129,7 @@ public class TacyAgent extends AgentImpl  {
 	@Override
 	public void gameStarted() {
 		log.fine("Game " + agent.getGameID() + " started!");
-
+		
 		calculateAllocation();
 		sendBids();
 	}

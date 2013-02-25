@@ -1,7 +1,10 @@
 package ch.mas.tacy.model;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import ch.mas.tacy.model.agentware.AuctionType;
 
@@ -143,6 +146,28 @@ public class ClientPackage {
 	public void setOvernightStay(int day){
 		actualOvernightStays.put(day, true);
 	}
+	
+	public Set<Integer> getActualOvernightStays() {
+		return actualOvernightStays.keySet();
+	}
+	
+	/**
+	 * returns on which days hotel rooms are still needed
+	 * @return
+	 */
+	public List<Integer> getNeedForHotelDays(){
+		
+		List<Integer> missingDays = new ArrayList<Integer>();
+		
+		for(Integer day : actualOvernightStays.keySet()){
+			if(actualOvernightStays.get(day) == false){
+				missingDays.add(day);
+			}
+		}
+		
+		return missingDays;
+	}
+
 
 	public void setEvent(int day, AuctionType type){
 		actualEvents.put(day, type);

@@ -16,6 +16,7 @@ public class ClientManager {
 
 	public ClientManager(TACAgent agent){
 		initClients(agent);
+		
 	}
 
 	/**

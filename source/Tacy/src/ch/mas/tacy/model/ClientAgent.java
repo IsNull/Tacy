@@ -1,10 +1,13 @@
 package ch.mas.tacy.model;
 
 
+import java.util.List;
+
 import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
+import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.ClientPreferenceType;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
@@ -33,6 +36,8 @@ public class ClientAgent {
 		this.clientPackage = new ClientPackage(clientID);
 		client = clientID;
 		this.agent = agent;
+
+		setPreferences();
 	}
 
 	public ClientPackage getClientPackage() {
@@ -46,8 +51,8 @@ public class ClientAgent {
 	 * such as the game is about to close
 	 */
 	public void pulse() {
-		setPreferences();
 		handleFlights();
+		handleHotels();
 	}
 
 	/**
@@ -71,14 +76,14 @@ public class ClientAgent {
 	 * @param quantity a positive quantity means increment, negative is decrement
 	 */
 	public void onTransaction(Auction item, int quantity){
-		
+
 		AuctionCategory category = item.getCategory();
 		AuctionType type = item.getType();
 		int auctionday = item.getAuctionDay();
 
 		//withdraw the corresponding request
 		tradeMaster.updateRequestedItem(this, item, quantity, 0);
-	
+
 
 		//keep track in the clients package
 		switch(type){
@@ -201,6 +206,45 @@ public class ClientAgent {
 
 
 
+	}
+
+
+
+	private void handleHotels(){
+
+
+		List<Integer> missingDays = clientPackage.getNeedForHotelDays();
+		for(Integer day : missingDays){
+
+		}
+
+
+		/*
+		Auction auction = quote.getAuction();
+		AuctionCategory auctionCategory = auction.getCategory();
+		if (auctionCategory == AuctionCategory.HOTEL) {
+			int alloc = agent.getAllocation(auction);
+			if (alloc > 0 && quote.hasHQW(agent.getBid(auction)) &&
+					quote.getHQW() < alloc) {
+				Bid bid = new Bid(auction);
+				// Can not own anything in hotel auctions...
+				prices[auction.getId()] = quote.getAskPrice() + 50;
+				bid.addBidPoint(alloc, prices[auction.getId()]);
+				if (DEBUG) {
+					log.finest("submitting bid with alloc="
+							+ agent.getAllocation(auction)
+							+ " own=" + agent.getOwn(auction));
+				}
+				agent.submitBid(bid);
+			}
+		 */
+	}
+
+	public void allocHotels(int day, AuctionType hotelType){
+
+		Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.CHEAP_HOTEL, day);
+		Quote quote = auctionManager.getCurrentQuote(auction);
+		float currentAskPrice = quote.getAskPrice();
 	}
 
 
