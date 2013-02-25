@@ -3,6 +3,8 @@ package ch.mas.tacy.model;
 import java.util.HashMap;
 import java.util.Map;
 
+import ch.mas.tacy.model.agentware.AuctionType;
+
 /**
  * A ClientPackage represents a full package for a single Client
  * 
@@ -16,10 +18,16 @@ public class ClientPackage {
 
 	private int preferredInFlight;
 	private int preferredOutFlight;
+	private int pvHotel;
+	private int pvAW;
+	private int pvAP;
+	private int pvMU;
 
 
-	/** first value represents day, second if a hotel stay has been allocated or not */
+	/** first value represents day, second if a corresponding hotel stay has been allocated or not */
 	private final Map<Integer, Boolean> actualOvernightStays = new HashMap<Integer, Boolean>();
+	/** first value represents day, second if a corresponding event has been allocated or not (either EVENT_ALLIGATOR_WRESTLING, EVENT_AMUSEMENT, EVENT_MUSEUM or None */
+	private final Map<Integer, AuctionType> actualEvents = new HashMap<Integer, AuctionType>();
 	private int actualInFlight;
 	private int actualOutFlight;
 
@@ -31,11 +39,12 @@ public class ClientPackage {
 	}
 
 	/**
-	 * calculates on which days overnight stays has to be placed in order to make a feasible package
+	 * calculates on which days overnight stays and events has to be placed in order to make a feasible package
 	 */
 	public void calculateOvernightStays(){
 		for(int i=preferredInFlight; i<preferredOutFlight; i++){
 			actualOvernightStays.put(i, false);
+			actualEvents.put(i, AuctionType.None);
 		}
 	}
 
@@ -46,6 +55,24 @@ public class ClientPackage {
 	 */
 	public boolean hasHotel(int day){
 		return actualOvernightStays.get(day);		
+	}
+
+	/**
+	 * returns true if an event is already allocated on the given day
+	 * @param day
+	 * @return
+	 */
+	public boolean hasEvent(int day){
+		return (!actualEvents.get(day).equals(AuctionType.None));
+	}
+
+	/**
+	 * returns true if the given type already exists in the package
+	 * @param type
+	 * @return
+	 */
+	public boolean hasSameEvent(AuctionType type){
+		return (actualEvents.containsValue(type));
 	}
 
 	/**
@@ -113,8 +140,13 @@ public class ClientPackage {
 		return actualOvernightStays.containsKey(day);
 	}
 
+	public void setOvernightStay(int day){
+		actualOvernightStays.put(day, true);
+	}
 
-
+	public void setEvent(int day, AuctionType type){
+		actualEvents.put(day, type);
+	}
 
 
 	public int getPreferredOutFlight() {
@@ -131,6 +163,38 @@ public class ClientPackage {
 
 	public void setPreferredInFlight(int preferredInFlight) {
 		this.preferredInFlight = preferredInFlight;
+	}
+
+	public int getPvHotel() {
+		return pvHotel;
+	}
+
+	public void setPvHotel(int pvHotel) {
+		this.pvHotel = pvHotel;
+	}
+
+	public int getPvAW() {
+		return pvAW;
+	}
+
+	public void setPvAW(int pvAV) {
+		this.pvAW = pvAV;
+	}
+
+	public int getPvAP() {
+		return pvAP;
+	}
+
+	public void setPvAP(int pvAP) {
+		this.pvAP = pvAP;
+	}
+
+	public int getPvMU() {
+		return pvMU;
+	}
+
+	public void setPvMU(int pvMU) {
+		this.pvMU = pvMU;
 	}
 
 }

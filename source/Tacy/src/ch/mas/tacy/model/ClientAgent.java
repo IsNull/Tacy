@@ -1,5 +1,6 @@
 package ch.mas.tacy.model;
 
+
 import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
@@ -12,7 +13,7 @@ import ch.mas.tacy.model.auctions.TradeMaster;
 /**
  * Sub agent for a single client
  * 
- * @author P. Büttiker
+ * @author P. Büttiker & E. Neher
  *
  */
 public class ClientAgent {
@@ -55,7 +56,13 @@ public class ClientAgent {
 	public void setPreferences(){
 		clientPackage.setPreferredInFlight(agent.getClientPreference(client, ClientPreferenceType.ARRIVAL));
 		clientPackage.setPreferredOutFlight(agent.getClientPreference(client, ClientPreferenceType.DEPARTURE));
+		clientPackage.setPvHotel(agent.getClientPreference(client, ClientPreferenceType.HOTEL_VALUE));
+		clientPackage.setPvAW(agent.getClientPreference(client, ClientPreferenceType.E1));
+		clientPackage.setPvAP(agent.getClientPreference(client, ClientPreferenceType.E2));
+		clientPackage.setPvMU(agent.getClientPreference(client, ClientPreferenceType.E3));
+
 		clientPackage.calculateOvernightStays();
+
 	}
 
 	/**
@@ -64,7 +71,36 @@ public class ClientAgent {
 	 * @param quantity a positive quantity means increment, negative is decrement
 	 */
 	public void onTransaction(Auction item, int quantity){
-		//TODO probably adjust client request right now?!z
+		
+		AuctionCategory category = item.getCategory();
+		AuctionType type = item.getType();
+		int auctionday = item.getAuctionDay();
+
+		//withdraw the corresponding request
+		tradeMaster.updateRequestedItem(this, item, quantity, 0);
+	
+
+		//keep track in the clients package
+		switch(type){
+
+		case INFLIGHT:
+			clientPackage.setInFlight(auctionday);
+			break;
+		case OUTFLIGHT:
+			clientPackage.setOutFlight(auctionday);
+			break;
+		case CHEAP_HOTEL:
+		case GOOD_HOTEL:
+			clientPackage.setOvernightStay(auctionday);
+			break;
+		case EVENT_ALLIGATOR_WRESTLING:
+		case EVENT_AMUSEMENT:
+		case EVENT_MUSEUM:
+			clientPackage.setEvent(auctionday, type);
+			break;
+		default:
+			break;
+		}
 	}
 
 	/**
@@ -101,7 +137,18 @@ public class ClientAgent {
 			break;
 
 		case ENTERTAINMENT:
+			//client wants item if: event type does not already exist, there is no event on given day, premium value for given type is not 0
+			if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPackage.getPvAW() != 0 && !clientPackage.hasEvent(auctionday) && !clientPackage.hasSameEvent(type)){
+				quantity = 1;
+			}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPackage.getPvAP() != 0 && !clientPackage.hasEvent(auctionday) && !clientPackage.hasSameEvent(type)){
+				quantity = 1;
+			}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPackage.getPvMU() != 0 && !clientPackage.hasEvent(auctionday) && !clientPackage.hasSameEvent(type)){
+				quantity = 1;
+			}
 
+			break;
+
+		default:
 			break;
 
 		}
