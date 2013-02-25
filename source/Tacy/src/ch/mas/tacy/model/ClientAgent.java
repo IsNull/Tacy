@@ -77,7 +77,7 @@ public class ClientAgent {
 		clientPackage.setPvAP(agent.getClientPreference(client, ClientPreferenceType.E2));
 		clientPackage.setPvMU(agent.getClientPreference(client, ClientPreferenceType.E3));
 
-		clientPackage.calculateOvernightStays();
+		clientPackage.calculateNeededHotelRooms();
 
 	}
 
@@ -93,7 +93,7 @@ public class ClientAgent {
 		int auctionday = item.getAuctionDay();
 
 		//withdraw the corresponding request
-		
+
 		tradeMaster.updateRequestedItem(this, item, quantity, 0);
 
 
@@ -108,7 +108,7 @@ public class ClientAgent {
 			break;
 		case CHEAP_HOTEL:
 		case GOOD_HOTEL:
-			clientPackage.setOvernightStay(auctionday);
+			clientPackage.setActualHotelRooms(auctionday, type);
 			break;
 		case EVENT_ALLIGATOR_WRESTLING:
 		case EVENT_AMUSEMENT:
@@ -147,8 +147,8 @@ public class ClientAgent {
 
 
 		case HOTEL:
-			//overnight stay of hotel has to be within the trip and not already existing in package
-			if(clientPackage.isPresenceDay(auctionday) && !clientPackage.hasHotel(auctionday)){
+			//overnight stay of hotel has to be within the trip, must be of the same hotel type which already exists in the package and not already existing in package
+			if(clientPackage.isPresenceDay(auctionday) && (clientPackage.getCurrenHotelType().equals(type) || clientPackage.getCurrenHotelType().equals(AuctionType.None)) &&!clientPackage.hasHotel(auctionday)){
 				quantity = 1;
 			}
 			break;
@@ -271,28 +271,36 @@ public class ClientAgent {
 	 */
 	private AuctionType isTTProfitable(){
 
-		//if the difference between the total cost for SS and the total cost for TT is smaller than the clients
-		//premium value there is no point in buying TT rooms
 		
-		int hypotheticalCostSS = 0;
-		int hypotheticalCostTT = 0;
+		if(clientPackage.getCurrenHotelType().equals(AuctionType.None)){
+
+			//if the difference between the total cost for SS and the total cost for TT is smaller than the clients
+			//premium value there is no point in buying TT rooms
+			int hypotheticalCostSS = 0;
+			int hypotheticalCostTT = 0;
+
+			List<Integer> missingDays = clientPackage.getNeedForHotelDays();
+
+			for(Integer day : missingDays){
+				Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.CHEAP_HOTEL, day);
+				hypotheticalCostSS += auctionManager.getCurrentQuote(auction).getAskPrice();
+
+				auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.GOOD_HOTEL, day);
+				hypotheticalCostTT += auctionManager.getCurrentQuote(auction).getAskPrice();			
+			}
+
+			int difference = hypotheticalCostTT-hypotheticalCostSS; //could also be negative which would mean that the current price for staying in TT is cheaper than for staying in ss.
+
+
+			return (clientPackage.getPvHotel() > difference) ? AuctionType.GOOD_HOTEL : AuctionType.CHEAP_HOTEL;
 		
-		List<Integer> missingDays = clientPackage.getNeedForHotelDays();
-		
-		for(Integer day : missingDays){
-			Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.CHEAP_HOTEL, day);
-			hypotheticalCostSS += auctionManager.getCurrentQuote(auction).getAskPrice();
-			
-			auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.GOOD_HOTEL, day);
-			hypotheticalCostTT += auctionManager.getCurrentQuote(auction).getAskPrice();			
+		} else {
+
+			return clientPackage.getCurrenHotelType();
+
 		}
-		
-		int difference = hypotheticalCostTT-hypotheticalCostSS; //could also be negative which would mean that the current price for staying in TT is cheaper than for staying in ss.
-		
-		
-		return (clientPackage.getPvHotel() > difference) ? AuctionType.GOOD_HOTEL : AuctionType.CHEAP_HOTEL;
 
 	}
-
-
 }
+
+

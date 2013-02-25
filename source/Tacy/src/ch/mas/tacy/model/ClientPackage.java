@@ -28,7 +28,9 @@ public class ClientPackage {
 
 
 	/** first value represents day, second if a corresponding hotel stay has been allocated or not */
-	private final Map<Integer, Boolean> actualOvernightStays = new HashMap<Integer, Boolean>();
+	private final Map<Integer, Boolean> actualHotelRooms = new HashMap<Integer, Boolean>();
+	/** first vaule represents day, second determines which type of hotel it is*/
+	private final Map<Integer, AuctionType> actualHotelRoomsTypes = new HashMap<Integer, AuctionType>();
 	/** first value represents day, second if a corresponding event has been allocated or not (either EVENT_ALLIGATOR_WRESTLING, EVENT_AMUSEMENT, EVENT_MUSEUM or None */
 	private final Map<Integer, AuctionType> actualEvents = new HashMap<Integer, AuctionType>();
 	private int actualInFlight;
@@ -44,9 +46,10 @@ public class ClientPackage {
 	/**
 	 * calculates on which days overnight stays and events has to be placed in order to make a feasible package
 	 */
-	public void calculateOvernightStays(){
+	public void calculateNeededHotelRooms(){
 		for(int i=preferredInFlight; i<preferredOutFlight; i++){
-			actualOvernightStays.put(i, false);
+			actualHotelRooms.put(i, false);
+			actualHotelRoomsTypes.put(i, AuctionType.None);
 			actualEvents.put(i, AuctionType.None);
 		}
 	}
@@ -57,7 +60,7 @@ public class ClientPackage {
 	 * @return
 	 */
 	public boolean hasHotel(int day){
-		return actualOvernightStays.get(day);		
+		return actualHotelRooms.get(day);		
 	}
 
 	/**
@@ -140,15 +143,26 @@ public class ClientPackage {
 	 * @return
 	 */
 	public boolean isPresenceDay(int day){
-		return actualOvernightStays.containsKey(day);
+		return actualHotelRooms.containsKey(day);
 	}
 
-	public void setOvernightStay(int day){
-		actualOvernightStays.put(day, true);
+	public void setActualHotelRooms(int day, AuctionType type){
+		actualHotelRooms.put(day, true);
+		actualHotelRoomsTypes.put(day, type);
 	}
 	
-	public Set<Integer> getActualOvernightStays() {
-		return actualOvernightStays.keySet();
+	public Set<Integer> getActualHotelRooms() {
+		return actualHotelRooms.keySet();
+	}
+	
+	public AuctionType getCurrenHotelType(){
+		if(actualHotelRoomsTypes.containsValue(AuctionType.GOOD_HOTEL)){
+			return AuctionType.GOOD_HOTEL;
+		}else if(actualHotelRoomsTypes.containsValue(AuctionType.CHEAP_HOTEL)){
+			return AuctionType.CHEAP_HOTEL;
+		} else {
+			return AuctionType.None;
+		}
 	}
 	
 	/**
@@ -159,13 +173,17 @@ public class ClientPackage {
 		
 		List<Integer> missingDays = new ArrayList<Integer>();
 		
-		for(Integer day : actualOvernightStays.keySet()){
-			if(actualOvernightStays.get(day) == false){
+		for(Integer day : actualHotelRooms.keySet()){
+			if(actualHotelRooms.get(day) == false){
 				missingDays.add(day);
 			}
 		}
 		
 		return missingDays;
+	}
+	
+	public boolean hasAtLeastOneHotelRoom(){
+		return (actualHotelRooms.size() > 0);
 	}
 
 
