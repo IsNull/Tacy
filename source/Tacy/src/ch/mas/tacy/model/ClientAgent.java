@@ -3,7 +3,10 @@ package ch.mas.tacy.model;
 
 import java.util.List;
 
+import com.sun.xml.internal.bind.v2.TODO;
+
 import ch.mas.tacy.Services;
+import ch.mas.tacy.TacyAgent;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
@@ -26,6 +29,7 @@ public class ClientAgent {
 	private final TACAgent agent;
 	private final ClientPackage clientPackage;
 	private final int client;
+	private Quote lastHotelQuote = null;
 
 
 	private final Services services = Services.instance();
@@ -218,12 +222,13 @@ public class ClientAgent {
 
 	private void handleHotels(){
 
-
+		
 		List<Integer> missingDays = clientPackage.getNeedForHotelDays();
 		for(Integer day : missingDays){
-
+			Auction auction = agent.getAuctionFor(AuctionCategory.HOTEL, getGoodOrBadHotel(), day);
+			Quote quote = auctionManager.getCurrentQuote(auction);
 		}
-
+	
 
 		/*
 		Auction auction = quote.getAuction();
@@ -251,6 +256,17 @@ public class ClientAgent {
 		Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.CHEAP_HOTEL, day);
 		Quote quote = auctionManager.getCurrentQuote(auction);
 		float currentAskPrice = quote.getAskPrice();
+		
+	
+	}
+
+	public AuctionType getGoodOrBadHotel(){
+
+
+		return (clientPackage.getPvHotel() > 70) ? AuctionType.GOOD_HOTEL : AuctionType.CHEAP_HOTEL;
+
+
+
 	}
 
 
