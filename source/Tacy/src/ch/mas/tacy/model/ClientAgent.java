@@ -287,10 +287,11 @@ public class ClientAgent {
 	public void handleEntertainment(){
 		
 		List<Integer> missingEventDays = clientPackage.getNeedForHotelDays();
-		clientPackage.getTripDuration();
+		
+		
 		
 		for(Integer day : missingEventDays){
-			Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, isTTProfitable(), day);
+			Auction auction = TACAgent.getAuctionFor(AuctionCategory.ENTERTAINMENT, isTTProfitable(), day);
 			Quote quote = auctionManager.getCurrentQuote(auction);
 			int alloc = agent.getAllocation(auction);
 			if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
