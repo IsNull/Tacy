@@ -35,12 +35,14 @@ public class ClientPackage {
 	private final Map<Integer, AuctionType> actualEvents = new HashMap<Integer, AuctionType>();
 	private int actualInFlight;
 	private int actualOutFlight;
+	private int tripDuration = 0;
 
 
 
 
 	public ClientPackage(int client){
 		this.client = client;
+		calculateNeededHotelRooms();
 	}
 
 	/**
@@ -50,6 +52,8 @@ public class ClientPackage {
 		for(int i=preferredInFlight; i<preferredOutFlight; i++){
 			actualHotelRoomsTypes.put(i, AuctionType.None);
 			actualEvents.put(i, AuctionType.None);
+			setTripDuration(getTripDuration() + 1) ;
+			
 		}
 	}
 
@@ -175,6 +179,23 @@ public class ClientPackage {
 
 		return missingDays;
 	}
+	
+	/**
+	 * return on which days entertainment events are still needed
+	 * @return
+	 */
+	public List<Integer> getNeedForEvents(){
+
+		List<Integer> missingDays = new ArrayList<Integer>();
+
+		for(Integer day : actualEvents.keySet()){
+			if(actualHotelRoomsTypes.get(day) == AuctionType.None){
+				missingDays.add(day);
+			}
+		}
+
+		return missingDays;
+	}
 
 	public boolean hasAtLeastOneHotelRoom(){
 		return (actualHotelRoomsTypes.size() > 0);
@@ -232,6 +253,14 @@ public class ClientPackage {
 
 	public void setPvMU(int pvMU) {
 		this.pvMU = pvMU;
+	}
+
+	public int getTripDuration() {
+		return tripDuration;
+	}
+
+	public void setTripDuration(int tripDuration) {
+		this.tripDuration = tripDuration;
 	}
 
 }

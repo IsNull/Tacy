@@ -7,6 +7,7 @@ import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
+import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.ClientPreferenceType;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
@@ -60,6 +61,7 @@ public class ClientAgent {
 	public void pulse() {
 		handleFlights();
 		handleHotels();
+		handleEntertainment();
 	}
 
 	/**
@@ -231,13 +233,15 @@ public class ClientAgent {
 	}
 
 
-
+	/**
+	 * handle the Hotels
+	 */
 	private void handleHotels(){
 
 
-		List<Integer> missingDays = clientPackage.getNeedForHotelDays();
+		List<Integer> missingHoteDays = clientPackage.getNeedForHotelDays();
 
-		for(Integer day : missingDays){
+		for(Integer day : missingHoteDays){
 			Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, isTTProfitable(), day);
 			Quote quote = auctionManager.getCurrentQuote(auction);
 			int alloc = agent.getAllocation(auction);
@@ -271,9 +275,57 @@ public class ClientAgent {
 
 	}
 
+	
 	public void allocHotels(int day, AuctionType hotelType){
 
 	}
+	
+	
+	/**
+	 * handle the Entertainment
+	 */
+	public void handleEntertainment(){
+		
+		List<Integer> missingEventDays = clientPackage.getNeedForHotelDays();
+		clientPackage.getTripDuration();
+		
+		for(Integer day : missingEventDays){
+			Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, isTTProfitable(), day);
+			Quote quote = auctionManager.getCurrentQuote(auction);
+			int alloc = agent.getAllocation(auction);
+			if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
+
+				tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
+			}
+
+		}
+	
+		
+		
+		
+		/*
+		 * else if (auctionCategory == AuctionCategory.ENTERTAINMENT) {
+			int alloc = agent.getAllocation(auction) - agent.getOwn(auction);
+			if (alloc != 0) {
+				Bid bid = new Bid(auction);
+				if (alloc < 0)
+					prices[auction.getId()] = 200f - (agent.getGameTime() * 120f) / 720000;
+				else
+					prices[auction.getId()] = 50f + (agent.getGameTime() * 100f) / 720000;
+				bid.addBidPoint(alloc, prices[auction.getId()]);
+				if (DEBUG) {
+					log.finest("submitting bid with alloc="
+							+ agent.getAllocation(auction)
+							+ " own=" + agent.getOwn(auction));
+				}
+				agent.submitBid(bid);
+			}
+		}*
+		 */
+		
+		
+	}
+	
 
 	/**
 	 * returns for which hotel type we have to buy rooms (based on clients premium value for hotels)
@@ -311,6 +363,10 @@ public class ClientAgent {
 		}
 
 	}
+
+	
 }
+
+
 
 
