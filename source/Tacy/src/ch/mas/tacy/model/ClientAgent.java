@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import sun.awt.SunToolkit.InfiniteLoop;
+
 import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
@@ -292,8 +294,40 @@ public class ClientAgent {
 	 */
 	private List<ValuedAuction> calculateEntertainmentValues(){
 		List<ValuedAuction> valuedAuctions = new ArrayList<ValuedAuction>();
+		List<Auction> entertainmentAuctions = new ArrayList<Auction>();
 
-		//TODO
+		//get all entertainment auctions
+		for(int i=0; i< TACAgent.getAuctionNo(); i++){	
+			if(TACAgent.getAuction(i).getCategory() == AuctionCategory.ENTERTAINMENT){
+				entertainmentAuctions.add(TACAgent.getAuction(i));
+			}
+		}
+
+		//for each entertainment auction calculate the current profit based on what we would have to pay and what the current price for the ticket is
+		for (Auction auction : entertainmentAuctions) {
+
+			Quote currentQuote = auctionManager.getCurrentQuote(auction);
+			if(currentQuote != null){
+
+
+				float currentPrice = currentQuote.getAskPrice();
+				float value = 0;
+
+				if(auction.getType() == AuctionType.EVENT_ALLIGATOR_WRESTLING){
+					value = clientPackage.getPremiumValueAlligatorWrestling() - currentPrice;
+				} else if(auction.getType() == AuctionType.EVENT_AMUSEMENT){
+					value = clientPackage.getPremiumValueAmusementPark() - currentPrice;
+				} else if(auction.getType() == AuctionType.EVENT_MUSEUM){
+					value = clientPackage.getPremiumValuevMuseum() - currentPrice;
+				}
+
+				if(value >= 0)
+				{
+					ValuedAuction va = new ValuedAuction(auction, value);
+					valuedAuctions.add(va);
+				}
+			}
+		}
 
 		Collections.sort(valuedAuctions);
 		return valuedAuctions;
@@ -326,7 +360,7 @@ public class ClientAgent {
 			{
 				// do not forget to clear all pending bids first ;)
 
-				tradeMaster.updateRequestedItem(this, valuedAuction.getAuction(), 1, price???);
+				tradeMaster.updateRequestedItem(this, valuedAuction.getAuction(), 1, auctionManager.getCurrentQuote(valuedAuction.getAuction()).getAskPrice()+1);
 			}
 		}
 
