@@ -1,7 +1,9 @@
 package ch.mas.tacy.model;
 
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
@@ -277,18 +279,31 @@ public class ClientAgent {
 	public void allocHotels(int day, AuctionType hotelType){
 
 	}
-
+	
+	/** how many diffrent event types do exist*/
+	private final static int DiffrentEventTypeCount = 3;
+	
 
 	/**
 	 * handle the Entertainment
 	 */
 	public void handleEntertainment(){
 
-		List<Integer> missingEventDays = clientPackage.getNeedForHotelDays();
-
-
-
+		List<Integer> missingEventDays = clientPackage.getNeedForEvents();
+		Map<Integer, AuctionType> plannedEvents = new HashMap<Integer, AuctionType>();
+		
+		
+		/*
+		while(missingEventDays.size() > DiffrentEventTypeCount){
+			missingEventDays.remove((int)Math.random()*DiffrentEventTypeCount);
+		}
+		
+	
 		for(Integer day : missingEventDays){
+				plannedEvents.put(day, value);
+		}
+
+		for(Integer day : plannedEvents.keySet()){
 			Auction auction = TACAgent.getAuctionFor(AuctionCategory.ENTERTAINMENT, isTTProfitable(), day);
 			Quote quote = auctionManager.getCurrentQuote(auction);
 			int alloc = agent.getAllocation(auction);
@@ -298,7 +313,7 @@ public class ClientAgent {
 			}
 
 		}
-
+	*/
 
 
 
