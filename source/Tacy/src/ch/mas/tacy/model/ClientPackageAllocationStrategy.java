@@ -26,41 +26,53 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 			Auction auction = TACAgent.getAuction(i);
 
 
+			List<ClientAgent> prioritizedClients = Lists.newList(agents);
+
 			if(auction.getCategory() == AuctionCategory.ENTERTAINMENT)
 			{
-
-
-
+				Collections.sort(prioritizedClients, entertainmentComparer);
 			}else{
-
-				List<ClientAgent> prioritizedClients = Lists.newList(agents);
 				Collections.sort(prioritizedClients, importanceComparer);
+			}
 
-				//
-				// depending on the prioritized agents list, assign the items to the ClientAgents
-				//
-				for (ClientAgent clientAgent : agents) {
-					int wantedQuantity = clientAgent.want(auction);
-					if(wantedQuantity > 0 && avaiableItems.getQuantity(auction) > 0){
 
-						int grantedQuantity = Math.min(wantedQuantity, avaiableItems.getQuantity(auction));
+			//
+			// depending on the prioritized agents list, assign the items to the ClientAgents
+			//
+			for (ClientAgent clientAgent : prioritizedClients) {
+				int wantedQuantity = clientAgent.want(auction);
+				if(wantedQuantity > 0 && avaiableItems.getQuantity(auction) > 0){
 
-						avaiableItems.incrementQuantity(auction, -grantedQuantity); // a negative increment results in a decrement ;)
-						clientAgent.onTransaction(auction, grantedQuantity);
-					}
+					int grantedQuantity = Math.min(wantedQuantity, avaiableItems.getQuantity(auction));
+
+					avaiableItems.incrementQuantity(auction, -grantedQuantity); // a negative increment results in a decrement ;)
+					clientAgent.onTransaction(auction, grantedQuantity);
 				}
 			}
 		}
-
-
 	}
 
 	private Comparator<? super ClientAgent> importanceComparer = new Comparator<ClientAgent>(){
 		@Override
 		public int compare(ClientAgent left, ClientAgent right) {
-			return 0; //left.getClientPackage();
-		}
 
+			return Double.compare(
+					left.getClientPackage().getTripDuration(),
+					right.getClientPackage().getTripDuration()
+					);
+		}
+	};
+
+
+	private Comparator<? super ClientAgent> entertainmentComparer = new Comparator<ClientAgent>(){
+		@Override
+		public int compare(ClientAgent left, ClientAgent right) {
+
+			return Double.compare(
+					left.getClientPackage().getTripDuration(),
+					right.getClientPackage().getTripDuration()
+					);
+		}
 	};
 
 
