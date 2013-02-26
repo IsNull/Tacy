@@ -70,11 +70,10 @@ public class ClientAgent {
 		clientPackage.setPreferredInFlight(agent.getClientPreference(client, ClientPreferenceType.ARRIVAL));
 		clientPackage.setPreferredOutFlight(agent.getClientPreference(client, ClientPreferenceType.DEPARTURE));
 		clientPackage.setPvHotel(agent.getClientPreference(client, ClientPreferenceType.HOTEL_VALUE));
-		clientPackage.setPvAW(agent.getClientPreference(client, ClientPreferenceType.E1));
-		clientPackage.setPvAP(agent.getClientPreference(client, ClientPreferenceType.E2));
-		clientPackage.setPvMU(agent.getClientPreference(client, ClientPreferenceType.E3));
+		clientPackage.setPremiumValueAlligatorWrestling(agent.getClientPreference(client, ClientPreferenceType.E1));
+		clientPackage.setPremiumValueAmusementPark(agent.getClientPreference(client, ClientPreferenceType.E2));
+		clientPackage.setPremiumValuevMuseum(agent.getClientPreference(client, ClientPreferenceType.E3));
 
-		clientPackage.calculateNeededHotelRooms();
 
 	}
 
@@ -167,11 +166,11 @@ public class ClientAgent {
 			//client wants item if: event type does not already exist, there is no event on given day, premium value for given type is not 0
 
 			if(!clientPackage.hasEventAt(auctionday) && !clientPackage.hasSameEvent(type)){
-				if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPackage.getPvAW() != 0){
+				if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPackage.getPremiumValueAlligatorWrestling() != 0){
 					quantity = 1;
-				}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPackage.getPvAP() != 0){
+				}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPackage.getPremiumValueAmusementPark() != 0){
 					quantity = 1;
-				}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPackage.getPvMU() != 0){
+				}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPackage.getPremiumValuevMuseum() != 0){
 					quantity = 1;
 				}
 			}
@@ -377,9 +376,35 @@ public class ClientAgent {
 	 */
 	public double getEntertainmentValue(Auction auction) {
 
+		assert auction != null : "auction cannot be null!";
+		
+		double value;
 
+		int day = auction.getAuctionDay();
+		AuctionType type = auction.getType();
 
-		return 0;
+		switch(type){
+
+		case EVENT_ALLIGATOR_WRESTLING:
+			value = clientPackage.getPremiumValueAlligatorWrestling();
+
+		case EVENT_AMUSEMENT:
+			value = clientPackage.getPremiumValueAmusementPark();
+
+		case EVENT_MUSEUM:
+			value = clientPackage.getPremiumValuevMuseum();
+			
+		default:
+			value = 0;
+
+		}
+		
+		//if package is not travel feasible yet we divide by 100 to reduce the package entertainment value
+		if(!clientPackage.isTravelFeasible()){
+			value = value/100;
+		}
+
+		return value;
 	}
 
 

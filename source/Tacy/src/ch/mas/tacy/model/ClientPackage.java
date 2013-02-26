@@ -21,9 +21,9 @@ public class ClientPackage {
 	private int preferredInFlight;
 	private int preferredOutFlight;
 	private int pvHotel;
-	private int pvAW;
-	private int pvAP;
-	private int pvMU;
+	private int premiumValueAlligatorWrestling;
+	private int premiumValueAmusementPark;
+	private int premiumValuevMuseum;
 
 
 	/** first vaule represents day, second determines which type of hotel it is*/
@@ -35,24 +35,22 @@ public class ClientPackage {
 	private final Map<Integer, AuctionType> actualEvents = new HashMap<Integer, AuctionType>();
 	private int actualInFlight;
 	private int actualOutFlight;
-	private int tripDuration = 1;
+
 
 
 
 
 	public ClientPackage(int client){
 		this.client = client;
-		calculateNeededHotelRooms();
 	}
 
 	/**
 	 * calculates on which days overnight stays and events has to be placed in order to make a feasible package
 	 */
-	public void calculateNeededHotelRooms(){
+	private void ensurePresenceDays(){
 		for(int i=preferredInFlight; i<preferredOutFlight; i++){
 			actualHotelRoomsTypes.put(i, AuctionType.None);
 			actualEvents.put(i, AuctionType.None);
-			setTripDuration(getTripDuration() + 1);
 		}
 	}
 
@@ -212,6 +210,7 @@ public class ClientPackage {
 
 	public void setPreferredOutFlight(int preferrefOutFlight) {
 		this.preferredOutFlight = preferrefOutFlight;
+		ensurePresenceDays();
 	}
 
 	public int getPreferredInFlight() {
@@ -220,6 +219,7 @@ public class ClientPackage {
 
 	public void setPreferredInFlight(int preferredInFlight) {
 		this.preferredInFlight = preferredInFlight;
+		ensurePresenceDays();
 	}
 
 	public int getPvHotel() {
@@ -230,36 +230,63 @@ public class ClientPackage {
 		this.pvHotel = pvHotel;
 	}
 
-	public int getPvAW() {
-		return pvAW;
+	public int getPremiumValueAlligatorWrestling() {
+		return premiumValueAlligatorWrestling;
 	}
 
-	public void setPvAW(int pvAV) {
-		this.pvAW = pvAV;
+	public void setPremiumValueAlligatorWrestling(int pvAV) {
+		this.premiumValueAlligatorWrestling = pvAV;
 	}
 
-	public int getPvAP() {
-		return pvAP;
+	public int getPremiumValueAmusementPark() {
+		return premiumValueAmusementPark;
 	}
 
-	public void setPvAP(int pvAP) {
-		this.pvAP = pvAP;
+	public void setPremiumValueAmusementPark(int pvAP) {
+		this.premiumValueAmusementPark = pvAP;
 	}
 
-	public int getPvMU() {
-		return pvMU;
+	public int getPremiumValuevMuseum() {
+		return premiumValuevMuseum;
 	}
 
-	public void setPvMU(int pvMU) {
-		this.pvMU = pvMU;
+	public void setPremiumValuevMuseum(int pvMU) {
+		this.premiumValuevMuseum = pvMU;
 	}
 
+	/**
+	 * returns the number of days of the whole trip
+	 * @return
+	 */
 	public int getTripDuration() {
-		return tripDuration;
+		return getPresenceDuration() + 1;
 	}
 
-	public void setTripDuration(int tripDuration) {
-		this.tripDuration = tripDuration;
+	/**
+	 * return the number of days on which the client needs hotels and can join events
+	 * @return
+	 */
+	public int getPresenceDuration(){
+		return (actualHotelRoomsTypes != null) ? actualHotelRoomsTypes.size() : 0;
+	}
+	
+	/**
+	 * returns true if the package has an in- and outflight as well as rooms for every night between this dates
+	 * @return
+	 */
+	public boolean isTravelFeasible(){
+		
+		boolean feasible = false;
+		
+		//check if package contains in and outflight
+		if(this.hasInFlight() && this.hasOutFlight()){
+			
+			//check if there is no need for hotel rooms anymore
+			feasible = this.getNeedForHotelDays().size() == 0;
+			
+		}
+		
+		return feasible;
 	}
 
 }
