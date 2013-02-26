@@ -1,9 +1,9 @@
 package ch.mas.tacy.model;
 
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
@@ -13,8 +13,10 @@ import ch.mas.tacy.model.agentware.ClientPreferenceType;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
 import ch.mas.tacy.model.auctions.AuctionInformationManager;
+import ch.mas.tacy.model.auctions.ItemRequest;
 import ch.mas.tacy.model.auctions.QuoteChangeManager;
 import ch.mas.tacy.model.auctions.TradeMaster;
+import ch.mas.tacy.model.auctions.ValuedAuction;
 
 /**
  * Sub agent for a single client
@@ -279,10 +281,24 @@ public class ClientAgent {
 	public void allocHotels(int day, AuctionType hotelType){
 
 	}
-	
+
 	/** how many diffrent event types do exist*/
 	private final static int DiffrentEventTypeCount = 3;
-	
+
+
+	/**
+	 * Returns all possible entertainment auctions, sorted by their current value
+	 * @return
+	 */
+	private List<ValuedAuction> calculateEntertainmentValues(){
+		List<ValuedAuction> valuedAuctions = new ArrayList<ValuedAuction>();
+
+		//TODO
+
+		Collections.sort(valuedAuctions);
+		return valuedAuctions;
+	}
+
 
 	/**
 	 * handle the Entertainment
@@ -290,15 +306,39 @@ public class ClientAgent {
 	public void handleEntertainment(){
 
 		List<Integer> missingEventDays = clientPackage.getNeedForEvents();
-		Map<Integer, AuctionType> plannedEvents = new HashMap<Integer, AuctionType>();
-		
-		
+		//Map<Integer, AuctionType> plannedEvents = new HashMap<Integer, AuctionType>();
+
+		// clear all pending requests
+		List<ItemRequest> allEntertainmentRequests = tradeMaster.findAllRequests(this, AuctionCategory.ENTERTAINMENT);
+		for (ItemRequest itemRequest : allEntertainmentRequests) {
+			tradeMaster.updateRequestedItem(this, itemRequest.getAuction(), 0, 0);
+		}
+
+		// for each free day, ensure that we have an item-event request with a given price
+
+		// check if we have any free entertainment day, if not -> abort
+
+		List<ValuedAuction> sortedValues = calculateEntertainmentValues();
+
+		for (ValuedAuction valuedAuction : sortedValues) {
+			int day = valuedAuction.getAuction().getAuctionDay();
+			if(missingEventDays.contains(day))
+			{
+				// do not forget to clear all pending bids first ;)
+
+				tradeMaster.updateRequestedItem(this, valuedAuction.getAuction(), 1, price???);
+			}
+		}
+
+
+
+
 		/*
 		while(missingEventDays.size() > DiffrentEventTypeCount){
 			missingEventDays.remove((int)Math.random()*DiffrentEventTypeCount);
 		}
-		
-	
+
+
 		for(Integer day : missingEventDays){
 				plannedEvents.put(day, value);
 		}
@@ -313,7 +353,7 @@ public class ClientAgent {
 			}
 
 		}
-	*/
+		 */
 
 
 
@@ -392,7 +432,7 @@ public class ClientAgent {
 	public double getEntertainmentValue(Auction auction) {
 
 		assert auction != null : "auction cannot be null!";
-		
+
 		double value;
 
 		int day = auction.getAuctionDay();
@@ -408,12 +448,12 @@ public class ClientAgent {
 
 		case EVENT_MUSEUM:
 			value = clientPackage.getPremiumValuevMuseum();
-			
+
 		default:
 			value = 0;
 
 		}
-		
+
 		//if package is not travel feasible yet we divide by 100 to reduce the package entertainment value
 		if(!clientPackage.isTravelFeasible()){
 			value = value/100;

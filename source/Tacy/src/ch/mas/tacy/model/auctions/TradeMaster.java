@@ -14,6 +14,7 @@ import ch.mas.tacy.model.ClientPackageAllocationStrategy;
 import ch.mas.tacy.model.IClientPackageAllocationStrategy;
 import ch.mas.tacy.model.ItemStock;
 import ch.mas.tacy.model.agentware.Auction;
+import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.TACAgent;
 import ch.mas.tacy.model.agentware.Transaction;
@@ -180,6 +181,28 @@ public class TradeMaster {
 		}
 		return null;
 	}
+
+
+	/**
+	 * Searches for all requests of the same item, given as auction
+	 * @param auction
+	 * @return
+	 */
+	public List<ItemRequest> findAllRequests(ClientAgent client, AuctionCategory category){
+		List<ItemRequest> matches = new ArrayList<ItemRequest>();
+		for (List<ItemRequest> rq : requests.values()) {
+			for (ItemRequest itemRequest : rq) {
+				if(itemRequest.getOriginator() != null && itemRequest.getOriginator().equals(client))
+				{
+					if(category == null || itemRequest.getAuction().getCategory() == category)
+						matches.add(itemRequest);
+				}
+			}
+		}
+
+		return matches;
+	}
+
 
 	/**
 	 * Searches for all requests of the same item, given as auction
