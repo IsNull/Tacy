@@ -35,7 +35,7 @@ public class ClientPackage {
 	private final Map<Integer, AuctionType> actualEvents = new HashMap<Integer, AuctionType>();
 	private int actualInFlight;
 	private int actualOutFlight;
-	private int tripDuration = 0;
+	private int tripDuration = 1;
 
 
 
@@ -52,8 +52,7 @@ public class ClientPackage {
 		for(int i=preferredInFlight; i<preferredOutFlight; i++){
 			actualHotelRoomsTypes.put(i, AuctionType.None);
 			actualEvents.put(i, AuctionType.None);
-			setTripDuration(getTripDuration() + 1) ;
-			
+			setTripDuration(getTripDuration() + 1);
 		}
 	}
 
