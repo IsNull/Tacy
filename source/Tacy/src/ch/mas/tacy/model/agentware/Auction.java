@@ -16,7 +16,7 @@ public class Auction {
 		this.auctionId = auctionId;
 		this.state = AuctionState.INITIALIZING;
 	}
-	
+
 	public AuctionState getState() {
 		return state;
 	}
@@ -90,6 +90,10 @@ public class Auction {
 	}
 
 
+	@Override
+	public String toString(){
+		return "Auction{" + getId() + "(" + getType()  + ")}";
+	}
 
 
 

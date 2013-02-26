@@ -78,7 +78,7 @@ public class ClientAgent {
 	}
 
 	/**
-	 * Occurs when there is a change in a item
+	 * Occurs when there is a change in a item to this clients package
 	 * @param item specifies the item type
 	 * @param quantity a positive quantity means increment, negative is decrement
 	 */
@@ -309,7 +309,12 @@ public class ClientAgent {
 			return clientPackage.getCurrenHotelType();
 
 		}
+	}
 
+
+	@Override
+	public String toString(){
+		return "ClientAgent{" + client + "}";
 	}
 }
 

@@ -45,7 +45,6 @@ public class TacyAgent extends AgentImpl  {
 		auctionManager = Services.instance().resolve(AuctionInformationManager.class);
 		tradeMaster = Services.instance().resolve(TradeMaster.class);
 		clientManager = Services.instance().resolve(ClientManager.class);
-
 	}
 
 	@Override
@@ -58,44 +57,6 @@ public class TacyAgent extends AgentImpl  {
 	public void quoteUpdated(Quote quote) {
 		auctionManager.onQuoteUpdated(quote);
 		clientManager.pulseAll();
-
-
-		/*
-		Auction auction = quote.getAuction();
-		AuctionCategory auctionCategory = auction.getCategory();
-		if (auctionCategory == AuctionCategory.HOTEL) {
-			int alloc = agent.getAllocation(auction);
-			if (alloc > 0 && quote.hasHQW(agent.getBid(auction)) &&
-					quote.getHQW() < alloc) {
-				Bid bid = new Bid(auction);
-				// Can not own anything in hotel auctions...
-				prices[auction.getId()] = quote.getAskPrice() + 50;
-				bid.addBidPoint(alloc, prices[auction.getId()]);
-				if (DEBUG) {
-					log.finest("submitting bid with alloc="
-							+ agent.getAllocation(auction)
-							+ " own=" + agent.getOwn(auction));
-				}
-				agent.submitBid(bid);
-			}
-		} else if (auctionCategory == AuctionCategory.ENTERTAINMENT) {
-			int alloc = agent.getAllocation(auction) - agent.getOwn(auction);
-			if (alloc != 0) {
-				Bid bid = new Bid(auction);
-				if (alloc < 0)
-					prices[auction.getId()] = 200f - (agent.getGameTime() * 120f) / 720000;
-				else
-					prices[auction.getId()] = 50f + (agent.getGameTime() * 100f) / 720000;
-				bid.addBidPoint(alloc, prices[auction.getId()]);
-				if (DEBUG) {
-					log.finest("submitting bid with alloc="
-							+ agent.getAllocation(auction)
-							+ " own=" + agent.getOwn(auction));
-				}
-				agent.submitBid(bid);
-			}
-		}
-		 */
 	}
 
 	@Override
@@ -129,7 +90,7 @@ public class TacyAgent extends AgentImpl  {
 	@Override
 	public void gameStarted() {
 		log.fine("Game " + agent.getGameID() + " started!");
-		
+
 		calculateAllocation();
 		sendBids();
 	}

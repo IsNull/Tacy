@@ -4,8 +4,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import ch.mas.tacy.Services;
+import ch.mas.tacy.TacyAgent;
 import ch.mas.tacy.model.ClientAgent;
 import ch.mas.tacy.model.ClientManager;
 import ch.mas.tacy.model.ClientPackageAllocationStrategy;
@@ -33,6 +35,8 @@ import ch.mas.tacy.util.Lists;
  *
  */
 public class TradeMaster {
+
+	private static final Logger log = Logger.getLogger(TacyAgent.class.getName());
 
 	private final TACAgent agent;
 
@@ -74,6 +78,8 @@ public class TradeMaster {
 		assert auction != null : "auction can not be null";
 
 		ItemRequest request = findRequest(auction, client);
+
+		log.fine("tradeMaster: updateRequestedItem() " + client + " " + auction + " quantity="+amount+" price="+price );
 
 		if(request == null)
 		{
@@ -188,7 +194,7 @@ public class TradeMaster {
 	}
 
 	/**
-	 * Sum of all given requests
+	 * Sum of quantity of all given requests
 	 * @param requests
 	 * @return
 	 */
@@ -202,6 +208,11 @@ public class TradeMaster {
 		return quantity;
 	}
 
+	/**
+	 * Returns the highest price of the given requests
+	 * @param requests
+	 * @return
+	 */
 	private float maxPrice(Iterable<ItemRequest> requests){
 		float price = 0;
 		if(requests != null){
