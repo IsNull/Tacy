@@ -23,14 +23,22 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 
 
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
-			Auction auction = TACAgent.getAuction(i);
-
+			final Auction auction = TACAgent.getAuction(i);
 
 			List<ClientAgent> prioritizedClients = Lists.newList(agents);
 
 			if(auction.getCategory() == AuctionCategory.ENTERTAINMENT)
 			{
-				Collections.sort(prioritizedClients, entertainmentComparer);
+				Collections.sort(prioritizedClients, new Comparator<ClientAgent>(){
+					@Override
+					public int compare(ClientAgent left, ClientAgent right) {
+
+						return Double.compare(
+								left.getEntertainmentValue(auction),
+								right.getEntertainmentValue(auction)
+								);
+					}
+				});
 			}else{
 				Collections.sort(prioritizedClients, importanceComparer);
 			}
@@ -64,16 +72,6 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 	};
 
 
-	private Comparator<? super ClientAgent> entertainmentComparer = new Comparator<ClientAgent>(){
-		@Override
-		public int compare(ClientAgent left, ClientAgent right) {
-
-			return Double.compare(
-					left.getClientPackage().getTripDuration(),
-					right.getClientPackage().getTripDuration()
-					);
-		}
-	};
 
 
 

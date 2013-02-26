@@ -7,7 +7,6 @@ import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
-import ch.mas.tacy.model.agentware.Bid;
 import ch.mas.tacy.model.agentware.ClientPreferenceType;
 import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
@@ -275,21 +274,21 @@ public class ClientAgent {
 
 	}
 
-	
+
 	public void allocHotels(int day, AuctionType hotelType){
 
 	}
-	
-	
+
+
 	/**
 	 * handle the Entertainment
 	 */
 	public void handleEntertainment(){
-		
+
 		List<Integer> missingEventDays = clientPackage.getNeedForHotelDays();
-		
-		
-		
+
+
+
 		for(Integer day : missingEventDays){
 			Auction auction = TACAgent.getAuctionFor(AuctionCategory.ENTERTAINMENT, isTTProfitable(), day);
 			Quote quote = auctionManager.getCurrentQuote(auction);
@@ -300,10 +299,10 @@ public class ClientAgent {
 			}
 
 		}
-	
-		
-		
-		
+
+
+
+
 		/*
 		 * else if (auctionCategory == AuctionCategory.ENTERTAINMENT) {
 			int alloc = agent.getAllocation(auction) - agent.getOwn(auction);
@@ -323,10 +322,10 @@ public class ClientAgent {
 			}
 		}*
 		 */
-		
-		
+
+
 	}
-	
+
 
 	/**
 	 * returns for which hotel type we have to buy rooms (based on clients premium value for hotels)
@@ -370,7 +369,20 @@ public class ClientAgent {
 		return "ClientAgent{" + client + "}";
 	}
 
-	
+	/**
+	 * Returns the subjective value for the given Entertainment ticket for this client.
+	 * (Assuming, he would own this ticket)
+	 * @param auction
+	 * @return
+	 */
+	public double getEntertainmentValue(Auction auction) {
+
+
+
+		return 0;
+	}
+
+
 }
 
 
