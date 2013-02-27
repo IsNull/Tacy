@@ -125,11 +125,14 @@ public class TradeMaster {
 	 */
 	private void updateBids(){
 
+		log.fine("TradeMaster: updating bids...");
+
 		// handle Bids if necessary
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
 			Auction auction = TACAgent.getAuction(i);
 
 			List<ItemRequest> pendingRequests = findAllRequests(auction);
+
 
 			int requested_quantity = sumQuantity(pendingRequests);
 			Bid currentBid = agent.getBid(auction);
