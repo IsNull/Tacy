@@ -65,8 +65,8 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 		public int compare(ClientAgent left, ClientAgent right) {
 
 			return Double.compare(
-					left.getClientPackage().getTripDuration(),
-					right.getClientPackage().getTripDuration()
+					left.getClientPreferences().getTripDuration(),
+					right.getClientPreferences().getTripDuration()
 					);
 		}
 	};
