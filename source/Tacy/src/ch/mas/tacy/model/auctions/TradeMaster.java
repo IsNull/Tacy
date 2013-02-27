@@ -155,6 +155,8 @@ public class TradeMaster {
 					if(!currentBid.isPreliminary())
 					{
 						agent.replaceBid(currentBid, newBid);
+						System.out.println("replaced bid:" + newBid);
+
 					}else{
 						//TODO
 					}
