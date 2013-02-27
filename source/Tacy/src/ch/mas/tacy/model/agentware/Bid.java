@@ -336,4 +336,10 @@ public class Bid {
 			return RejectReason.byValue(state);
 		}
 	}
+
+
+	@Override
+	public String toString(){
+		return "Bid{"+ getAuction() + ": " + getBidString() +"}";
+	}
 }

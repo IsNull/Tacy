@@ -49,4 +49,10 @@ public class Transaction {
 		return auction;
 	}
 
+	@Override
+	public String toString(){
+		return "Transaction " + auction + " (quantity: " + quantity + ", price: " + price + ")";
+	}
+
+
 } // Transaction
