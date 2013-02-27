@@ -101,6 +101,7 @@ public class ClientPackage {
 	 */
 	public void setInFlight(int day){
 		actualInFlight = day;
+		System.out.println("clientpackage: inflight set on day"+day);
 	}
 
 	/**
@@ -133,6 +134,7 @@ public class ClientPackage {
 	 */
 	public void setOutFlight(int outFlight) {
 		this.actualOutFlight = outFlight;
+		System.out.println("clientpackage: outflight set on day"+outFlight);
 	}
 
 	/**
@@ -146,6 +148,7 @@ public class ClientPackage {
 
 	public void setActualHotelRooms(int day, AuctionType type){
 		actualHotelRoomsTypes.put(day, type);
+		System.out.println("clientpackage: hotel room set on day"+day);
 	}
 
 	public AuctionType getCurrenHotelType(){
@@ -199,6 +202,7 @@ public class ClientPackage {
 
 	public void setEvent(int day, AuctionType type){
 		actualEvents.put(day, type);
+		System.out.println("clientpackage: event type "+type.toString()+" set on day"+day);
 	}
 
 

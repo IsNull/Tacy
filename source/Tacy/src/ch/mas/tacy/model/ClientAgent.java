@@ -95,7 +95,7 @@ public class ClientAgent {
 		int auctionday = item.getAuctionDay();
 
 		//withdraw the corresponding request
-
+		//TODO the quantity need to be the old ordered quantity
 		tradeMaster.updateRequestedItem(this, item, quantity, 0);
 
 
@@ -143,9 +143,11 @@ public class ClientAgent {
 			if(type.equals(AuctionType.INFLIGHT) &&
 					!clientPackage.hasInFlight() && clientPackage.getPreferredInFlight() == auctionday){
 				quantity = 1;
+				System.out.println("clientagent: want" +quantity+" inflight for "+auctionday);
 			} else if(type.equals(AuctionType.OUTFLIGHT) && 
 					!clientPackage.hasOutFlight() && clientPackage.getPreferredOutFlight() == auctionday){
 				quantity = 1;
+				System.out.println("clientagent: want" +quantity+" outflights for "+auctionday);
 			}
 			break;
 
@@ -163,6 +165,7 @@ public class ClientAgent {
 				// in the package and not already existing in package
 				if(clientPackage.getCurrenHotelType().equals(type) || clientPackage.getCurrenHotelType().equals(AuctionType.None)){
 					quantity = 1;
+					System.out.println("clientagent: want" +quantity+" hotel rooms for "+auctionday);
 				}
 			}
 			break;
@@ -174,10 +177,13 @@ public class ClientAgent {
 			if(!clientPackage.hasEventAt(auctionday) && !clientPackage.hasSameEvent(type)){
 				if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPackage.getPremiumValueAlligatorWrestling() != 0){
 					quantity = 1;
+					System.out.println("clientagent: want" +quantity+" event type alligator wrestling for "+auctionday);
 				}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPackage.getPremiumValueAmusementPark() != 0){
 					quantity = 1;
+					System.out.println("clientagent: want" +quantity+" event type amusement park for "+auctionday);
 				}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPackage.getPremiumValuevMuseum() != 0){
 					quantity = 1;
+					System.out.println("clientagent: want" +quantity+" event type museum for "+auctionday);
 				}
 			}
 

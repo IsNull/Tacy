@@ -120,6 +120,8 @@ public class TradeMaster {
 	/**
 	 * Send the necessary bids, withdraw no longer necessary bids etc.!
 	 * 
+	 * 
+	 * 
 	 */
 	private void updateBids(){
 
@@ -132,7 +134,7 @@ public class TradeMaster {
 			List<ItemRequest> pendingRequests = findAllRequests(auction);
 
 
-			int requested_quantity = sumQuantity(pendingRequests) - avaiableItems.getQuantity(auction);
+			int requested_quantity = sumQuantity(pendingRequests);
 			Bid currentBid = agent.getBid(auction);
 
 			float suggestedPrice = maxPrice(pendingRequests);
@@ -145,17 +147,22 @@ public class TradeMaster {
 
 				if(requested_quantity != 0){
 					agent.submitBid(newBid);
-					System.out.println("submitted new bid:" + newBid);
 				}
 			}else{
 				// we have a current bid
 				if(currentBid.getQuantity() != requested_quantity || currentBid.getMaxPrice() != suggestedPrice){
 					//which does no longer match.
-					agent.replaceBid(currentBid, newBid);
-					System.out.println("replaced bid:" + newBid);
+					if(!currentBid.isPreliminary())
+					{
+						agent.replaceBid(currentBid, newBid);
+					}else{
+						//TODO
+					}
 				}
 			}
 		}
+
+
 	}
 
 	protected void placeRequest(ItemRequest request) {
@@ -253,7 +260,29 @@ public class TradeMaster {
 	 * @param bid
 	 */
 	public void onBidUpdated(Bid bid){
-		// TODO
+
+		switch (bid.getProcessingState()) {
+		case REJECTED:
+
+			break;
+
+		case REPLACED:	
+		case WITHDRAWN:
+		case VALID:
+
+			break;
+
+		case EXPIRED:
+			break;
+
+		case TRANSACTED:
+
+			break;
+
+		default:
+			break;
+		}
+
 	}
 
 	/**
@@ -261,9 +290,6 @@ public class TradeMaster {
 	 * @param transaction
 	 */
 	public void onServerTransaction(Transaction transaction){
-
-		System.out.println("TradeMaster incomming Server transaction: " + transaction);
-
 		if(transaction.getQuantity() > 0){
 			// we have won the auction and bought the item, thus we can now update our stock details
 			transact(transaction.getAuction(), transaction.getQuantity());
@@ -274,8 +300,9 @@ public class TradeMaster {
 	}
 
 
+
 	/**
-	 * transact the given amount of items to this TradeMaster
+	 * transact the given amount of items to this tradmaster
 	 * @param auction item type
 	 * @param quantity n-new items 
 	 */
