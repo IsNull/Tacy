@@ -2,6 +2,7 @@ package ch.mas.tacy;
 
 import java.util.logging.Logger;
 
+import ch.mas.tacy.model.ClientAgent;
 import ch.mas.tacy.model.ClientManager;
 import ch.mas.tacy.model.agentware.AgentImpl;
 import ch.mas.tacy.model.agentware.Auction;
@@ -104,6 +105,13 @@ public class TacyAgent extends AgentImpl  {
 		if(auc != null)
 			auc.setState(AuctionState.CLOSED);
 		log.fine("*** Auction " + auction + " closed!");
+	}
+
+	@Override
+	public void preferencesUpdated() {
+		for (ClientAgent ca : clientManager.getAllClientAgents()) {
+			ca.updatePreferences();
+		}
 	}
 
 

@@ -112,4 +112,5 @@ public abstract class AgentImpl {
 				15000);
 	}
 
+	public abstract void preferencesUpdated();
 } // AgentImpl

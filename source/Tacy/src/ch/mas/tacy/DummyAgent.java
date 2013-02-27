@@ -354,4 +354,10 @@ public class DummyAgent extends AgentImpl {
 		return AuctionType.None;
 	}
 
+	@Override
+	public void preferencesUpdated() {
+		// TODO Auto-generated method stub
+		
+	}
+
 } // DummyAgent

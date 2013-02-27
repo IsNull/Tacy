@@ -9,21 +9,15 @@ import ch.mas.tacy.model.agentware.AuctionType;
 
 /**
  * A ClientPackage represents a full package for a single Client
- * 
+ *
  * Primary purpose of this class is to keep track of the current status of a package
  * (what does the client want and what does the client have?)
  * 
  */
 public class ClientPackage {
 
+	//represents the client to whom this ClientPackage is assigned to
 	private final int client;
-
-	private int preferredInFlight;
-	private int preferredOutFlight;
-	private int pvHotel;
-	private int premiumValueAlligatorWrestling;
-	private int premiumValueAmusementPark;
-	private int premiumValuevMuseum;
 
 
 	/** first vaule represents day, second determines which type of hotel it is*/
@@ -31,11 +25,9 @@ public class ClientPackage {
 
 	/** first value represents day, second if a corresponding event has been allocated or not (either EVENT_ALLIGATOR_WRESTLING, EVENT_AMUSEMENT, EVENT_MUSEUM or None */
 	private final Map<Integer, AuctionType> actualEvents = new HashMap<Integer, AuctionType>();
+	
 	private int actualInFlight;
 	private int actualOutFlight;
-
-
-
 
 
 	public ClientPackage(int client){
@@ -206,55 +198,6 @@ public class ClientPackage {
 	}
 
 
-	public int getPreferredOutFlight() {
-		return preferredOutFlight;
-	}
-
-	public void setPreferredOutFlight(int preferrefOutFlight) {
-		this.preferredOutFlight = preferrefOutFlight;
-		ensurePresenceDays();
-	}
-
-	public int getPreferredInFlight() {
-		return preferredInFlight;
-	}
-
-	public void setPreferredInFlight(int preferredInFlight) {
-		this.preferredInFlight = preferredInFlight;
-		ensurePresenceDays();
-	}
-
-	public int getPvHotel() {
-		return pvHotel;
-	}
-
-	public void setPvHotel(int pvHotel) {
-		this.pvHotel = pvHotel;
-	}
-
-	public int getPremiumValueAlligatorWrestling() {
-		return premiumValueAlligatorWrestling;
-	}
-
-	public void setPremiumValueAlligatorWrestling(int pvAV) {
-		this.premiumValueAlligatorWrestling = pvAV;
-	}
-
-	public int getPremiumValueAmusementPark() {
-		return premiumValueAmusementPark;
-	}
-
-	public void setPremiumValueAmusementPark(int pvAP) {
-		this.premiumValueAmusementPark = pvAP;
-	}
-
-	public int getPremiumValuevMuseum() {
-		return premiumValuevMuseum;
-	}
-
-	public void setPremiumValuevMuseum(int pvMU) {
-		this.premiumValuevMuseum = pvMU;
-	}
 
 	/**
 	 * returns the number of days of the whole trip

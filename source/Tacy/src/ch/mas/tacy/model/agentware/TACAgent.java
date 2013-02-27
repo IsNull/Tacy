@@ -1691,6 +1691,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 						}
 					}
 				}
+				agent.preferencesUpdated();
 			} else if (msg.isTag("ticketEndowments")) {
 				int day = -1;
 				AuctionType type = AuctionType.None;

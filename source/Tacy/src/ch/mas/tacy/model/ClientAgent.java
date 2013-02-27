@@ -31,8 +31,8 @@ public class ClientAgent {
 	private boolean virgin = true;
 	private final TACAgent agent;
 	private final ClientPackage clientPackage;
+	private ClientPreferences clientPreferences;
 	private final int client;
-	private Quote lastHotelQuote = null;
 
 
 	private final Services services = Services.instance();
@@ -45,16 +45,23 @@ public class ClientAgent {
 
 	public ClientAgent(int clientID, TACAgent agent){
 		this.clientPackage = new ClientPackage(clientID);
-		client = clientID;
+		this.clientPreferences = null;
+		this.client = clientID;
 		this.agent = agent;
 
 		auctionManager.registerQuoteChangeListener(quoteChangeManager);
-
-		setPreferences();
 	}
 
 	public ClientPackage getClientPackage() {
 		return clientPackage;
+	}
+	
+	public ClientPreferences getClientPreferences(){
+		return clientPreferences;
+	}
+	
+	public void setClientPreferences(ClientPreferences clientPreferences){
+		this.clientPreferences = clientPreferences;
 	}
 
 	/**
@@ -69,19 +76,6 @@ public class ClientAgent {
 		handleEntertainment();
 	}
 
-	/**
-	 * sets all the clients preferences into the clients package
-	 */
-	public void setPreferences(){
-		clientPackage.setPreferredInFlight(agent.getClientPreference(client, ClientPreferenceType.ARRIVAL));
-		clientPackage.setPreferredOutFlight(agent.getClientPreference(client, ClientPreferenceType.DEPARTURE));
-		clientPackage.setPvHotel(agent.getClientPreference(client, ClientPreferenceType.HOTEL_VALUE));
-		clientPackage.setPremiumValueAlligatorWrestling(agent.getClientPreference(client, ClientPreferenceType.E1));
-		clientPackage.setPremiumValueAmusementPark(agent.getClientPreference(client, ClientPreferenceType.E2));
-		clientPackage.setPremiumValuevMuseum(agent.getClientPreference(client, ClientPreferenceType.E3));
-
-
-	}
 
 	/**
 	 * Occurs when there is a change in a item to this clients package
@@ -141,11 +135,11 @@ public class ClientAgent {
 
 		case FLIGHT:
 			if(type.equals(AuctionType.INFLIGHT) &&
-					!clientPackage.hasInFlight() && clientPackage.getPreferredInFlight() == auctionday){
+					!clientPackage.hasInFlight() && clientPreferences.getPreferredInFlight() == auctionday){
 				quantity = 1;
 				System.out.println("clientagent: want" +quantity+" inflight for "+auctionday);
 			} else if(type.equals(AuctionType.OUTFLIGHT) && 
-					!clientPackage.hasOutFlight() && clientPackage.getPreferredOutFlight() == auctionday){
+					!clientPackage.hasOutFlight() && clientPreferences.getPreferredOutFlight() == auctionday){
 				quantity = 1;
 				System.out.println("clientagent: want" +quantity+" outflights for "+auctionday);
 			}
@@ -175,13 +169,13 @@ public class ClientAgent {
 			//client wants item if: event type does not already exist, there is no event on given day, premium value for given type is not 0
 
 			if(!clientPackage.hasEventAt(auctionday) && !clientPackage.hasSameEvent(type)){
-				if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPackage.getPremiumValueAlligatorWrestling() != 0){
+				if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPreferences.getPremiumValueAlligatorWrestling() != 0){
 					quantity = 1;
 					System.out.println("clientagent: want" +quantity+" event type alligator wrestling for "+auctionday);
-				}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPackage.getPremiumValueAmusementPark() != 0){
+				}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPreferences.getPremiumValueAmusementPark() != 0){
 					quantity = 1;
 					System.out.println("clientagent: want" +quantity+" event type amusement park for "+auctionday);
-				}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPackage.getPremiumValuevMuseum() != 0){
+				}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPreferences.getPremiumValuevMuseum() != 0){
 					quantity = 1;
 					System.out.println("clientagent: want" +quantity+" event type museum for "+auctionday);
 				}
@@ -204,13 +198,12 @@ public class ClientAgent {
 	 * Handle the flights
 	 */
 	private void handleFlights(){
-		System.out.println("handleflights");
 		if(!clientPackage.hasInFlight()){
-			allocFlight(clientPackage.getPreferredInFlight(), AuctionType.INFLIGHT);
+			allocFlight(clientPreferences.getPreferredInFlight(), AuctionType.INFLIGHT);
 		}
 
 		if(!clientPackage.hasOutFlight()){
-			allocFlight(clientPackage.getPreferredOutFlight(), AuctionType.OUTFLIGHT);
+			allocFlight(clientPreferences.getPreferredOutFlight(), AuctionType.OUTFLIGHT);
 		}
 	}
 
@@ -231,25 +224,27 @@ public class ClientAgent {
 		long gameduration = agent.getGameTime();
 		long pointOfReturn = 3 * 60 * 1000;
 		
-		System.out.println(gameduration);
-		System.out.println(pointOfReturn);
+		//System.out.println(gameduration);
+		//System.out.println(pointOfReturn);
 		
 		if(quote != null){
-			System.out.println("quote not null");
+			//System.out.println("quote not null");
 			float currentAskPrice = quote.getAskPrice();
 			
 			if(virgin){
-				System.out.println("virgin");
+				System.out.println("client is virgin");
 				//set an offset of 50 to the initial ask price
 				float suggestedPrice = currentAskPrice - 50;
 
 				//request this flight to the suggest price
 				tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
+				System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+suggestedPrice);
 				virgin = false; // bad bad :)
 			} else if (gameduration > pointOfReturn || auctionManager.getPriceGrowByValue(auction, 100)){
 				//replace pending bid with new one which will match the ask price immediately
-				System.out.println("not virgin");
+				//System.out.println("not virgin");
 				tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
+				System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+currentAskPrice+1);
 			}
 		}
 	}
@@ -332,11 +327,11 @@ public class ClientAgent {
 				float value = 0;
 
 				if(auction.getType() == AuctionType.EVENT_ALLIGATOR_WRESTLING){
-					value = clientPackage.getPremiumValueAlligatorWrestling() - currentPrice;
+					value = clientPreferences.getPremiumValueAlligatorWrestling() - currentPrice;
 				} else if(auction.getType() == AuctionType.EVENT_AMUSEMENT){
-					value = clientPackage.getPremiumValueAmusementPark() - currentPrice;
+					value = clientPreferences.getPremiumValueAmusementPark() - currentPrice;
 				} else if(auction.getType() == AuctionType.EVENT_MUSEUM){
-					value = clientPackage.getPremiumValuevMuseum() - currentPrice;
+					value = clientPreferences.getPremiumValuevMuseum() - currentPrice;
 				}
 
 				if(value >= 0)
@@ -460,7 +455,7 @@ public class ClientAgent {
 			int difference = hypotheticalCostTT-hypotheticalCostSS; //could also be negative which would mean that the current price for staying in TT is cheaper than for staying in ss.
 
 
-			return (clientPackage.getPvHotel() > difference) ? AuctionType.GOOD_HOTEL : AuctionType.CHEAP_HOTEL;
+			return (clientPreferences.getPremiumValueHotel() > difference) ? AuctionType.GOOD_HOTEL : AuctionType.CHEAP_HOTEL;
 
 		} else {
 
@@ -493,13 +488,13 @@ public class ClientAgent {
 		switch(type){
 
 		case EVENT_ALLIGATOR_WRESTLING:
-			value = clientPackage.getPremiumValueAlligatorWrestling();
+			value = clientPreferences.getPremiumValueAlligatorWrestling();
 
 		case EVENT_AMUSEMENT:
-			value = clientPackage.getPremiumValueAmusementPark();
+			value = clientPreferences.getPremiumValueAmusementPark();
 
 		case EVENT_MUSEUM:
-			value = clientPackage.getPremiumValuevMuseum();
+			value = clientPreferences.getPremiumValuevMuseum();
 
 		default:
 			value = 0;
@@ -512,6 +507,20 @@ public class ClientAgent {
 		}
 
 		return value;
+	}
+
+	//gets called when client preferences are available (at game start)
+	public void updatePreferences() {
+		
+		clientPreferences =  new ClientPreferences(client);
+		
+		clientPreferences.setPreferredInFlight(agent.getClientPreference(client, ClientPreferenceType.ARRIVAL));
+		clientPreferences.setPreferredOutFlight(agent.getClientPreference(client, ClientPreferenceType.DEPARTURE));
+		clientPreferences.setPremiumValueHotel(agent.getClientPreference(client, ClientPreferenceType.HOTEL_VALUE));
+		clientPreferences.setPremiumValueAlligatorWrestling(agent.getClientPreference(client, ClientPreferenceType.E1));
+		clientPreferences.setPremiumValueAmusementPark(agent.getClientPreference(client, ClientPreferenceType.E2));
+		clientPreferences.setPremiumValuevMuseum(agent.getClientPreference(client, ClientPreferenceType.E3));
+	
 	}
 
 
