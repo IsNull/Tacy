@@ -10,53 +10,44 @@ import ch.mas.tacy.model.agentware.TACAgent;
  * Simple implementation of a item stock
  *
  */
-public class ItemStock {
-	private final Object stockLock = new Object();
-	private final Map<Auction, Integer> stock = new HashMap<Auction, Integer>();
-
-
-
-	public ItemStock(){
-		// init empty stock 
-		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
-			Auction auction = TACAgent.getAuction(i);
-			stock.put(auction, 0);
-		}
-	}
+public class ItemStock<T> {
+	protected final Object stockLock = new Object();
+	protected final Map<T, Integer> stock = new HashMap<T, Integer>();
 
 
 	/**
 	 * Increment the stock items by the given amount
-	 * @param auction
+	 * @param itemType
 	 * @param quantity
 	 */
-	public void incrementQuantity(Auction auction, int quantity){
+	public void incrementQuantity(T itemType, int quantity){
 		synchronized (stockLock) {
-			stock.put(auction, stock.get(auction) + quantity);
+			int currentQuantity = stock.containsKey(itemType) ? stock.get(itemType) : 0;
+			stock.put(itemType, currentQuantity + quantity);
 		}
 	}
 
 
 	/**
 	 * Set the quantity of the given item type in this stock
-	 * @param auction item type
+	 * @param itemType item type
 	 * @param quantity
 	 */
-	public void setQuantity(Auction auction, int quantity){
+	public void setQuantity(T itemType, int quantity){
 		synchronized (stockLock) {
-			stock.put(auction, quantity);
+			stock.put(itemType, quantity);
 		}
 	}
 
 
 	/**
 	 * Returns the quantity of the given item type in this stock
-	 * @param auction
+	 * @param itemType
 	 * @return
 	 */
-	public int getQuantity(Auction auction) {
+	public int getQuantity(T itemType) {
 		synchronized (stockLock) {
-			return stock.get(auction);
+			return stock.containsKey(itemType) ? stock.get(itemType) : 0;
 		}
 	}
 

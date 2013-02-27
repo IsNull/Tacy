@@ -104,12 +104,12 @@ public class ClientAgent {
 			break;
 		case CHEAP_HOTEL:
 		case GOOD_HOTEL:
-			clientPackage.setActualHotelRooms(auctionday, type);
+			clientPackage.addItem(item, quantity);
 			break;
 		case EVENT_ALLIGATOR_WRESTLING:
 		case EVENT_AMUSEMENT:
 		case EVENT_MUSEUM:
-			clientPackage.setEvent(auctionday, type);
+			clientPackage.addItem(item, quantity);
 			break;
 		default:
 			break;
@@ -148,7 +148,7 @@ public class ClientAgent {
 
 		case HOTEL:
 
-			if(clientPackage.isPresenceDay(auctionday) && !clientPackage.hasHotel(auctionday))
+			if(clientPreferences.isPresenceDay(auctionday) && !clientPackage.hasHotelAt(auctionday))
 			{
 				// we need a hotel at this day
 
@@ -168,7 +168,7 @@ public class ClientAgent {
 
 			//client wants item if: event type does not already exist, there is no event on given day, premium value for given type is not 0
 
-			if(!clientPackage.hasEventAt(auctionday) && !clientPackage.hasSameEvent(type)){
+			if(!clientPackage.hasEventAt(auctionday) && !clientPackage.hasSameEvent(item)){
 				if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPreferences.getPremiumValueAlligatorWrestling() != 0){
 					quantity = 1;
 					System.out.println("clientagent: want" +quantity+" event type alligator wrestling for "+auctionday);
@@ -256,7 +256,7 @@ public class ClientAgent {
 	private void handleHotels(){
 
 
-		List<Integer> missingHoteDays = clientPackage.getNeedForHotelDays();
+		List<Integer> missingHoteDays = clientPackage.getNeedForHotelDays(clientPreferences);
 
 		for(Integer day : missingHoteDays){
 			Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, isTTProfitable(), day);
@@ -352,7 +352,7 @@ public class ClientAgent {
 	 */
 	public void handleEntertainment(){
 
-		List<Integer> missingEventDays = clientPackage.getNeedForEvents();
+		List<Integer> missingEventDays = clientPackage.getNeedForEvents(clientPreferences);
 		//Map<Integer, AuctionType> plannedEvents = new HashMap<Integer, AuctionType>();
 
 		// clear all pending requests
@@ -442,7 +442,7 @@ public class ClientAgent {
 			int hypotheticalCostSS = 0;
 			int hypotheticalCostTT = 0;
 
-			List<Integer> missingDays = clientPackage.getNeedForHotelDays();
+			List<Integer> missingDays = clientPackage.getNeedForHotelDays(clientPreferences);
 
 			for(Integer day : missingDays){
 				Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.CHEAP_HOTEL, day);
@@ -502,7 +502,7 @@ public class ClientAgent {
 		}
 
 		//if package is not travel feasible yet we divide by 100 to reduce the package entertainment value
-		if(!clientPackage.isTravelFeasible()){
+		if(!clientPackage.isTravelFeasible(clientPreferences)){
 			value = value/100;
 		}
 

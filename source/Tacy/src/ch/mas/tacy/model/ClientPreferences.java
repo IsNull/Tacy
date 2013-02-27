@@ -81,9 +81,7 @@ public class ClientPreferences {
 		this.premiumValuevMuseum = premiumValuevMuseum;
 	}
 	
-	public List<Integer> getPresenceDays() {
-		return presenceDays;
-	}
+	
 	
 	
 	/**
@@ -95,6 +93,40 @@ public class ClientPreferences {
 		for(int i=preferredInFlight; i<preferredOutFlight; i++){
 			presenceDays.add(i);
 		}
+	}
+	
+	/**
+	 * return the the clients presence days
+	 * @return
+	 */
+	public List<Integer> getPresenceDays() {
+		return presenceDays;
+	}
+	
+	/**
+	 * return the number of the clients presence days
+	 * @return
+	 */
+	public int getPresenceDuration(){
+		return presenceDays.size();
+	}
+	
+	/**
+	 * returns the number of days of the whole trip
+	 * @return
+	 */
+	public int getTripDuration() {
+		return presenceDays.size() + 1;
+	}
+	
+	
+	/**
+	 * returns true if the client is present on the given day
+	 * @param day
+	 * @return
+	 */
+	public boolean isPresenceDay(int day){
+		return presenceDays.contains(day);
 	}
 	
 	public String toString(){

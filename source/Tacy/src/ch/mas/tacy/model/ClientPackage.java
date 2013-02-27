@@ -5,7 +5,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ch.mas.tacy.model.agentware.Auction;
+import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
+import ch.mas.tacy.model.agentware.TACAgent;
 
 /**
  * A ClientPackage represents a full package for a single Client
@@ -21,27 +24,36 @@ public class ClientPackage {
 
 
 	/** first vaule represents day, second determines which type of hotel it is*/
-	private final Map<Integer, AuctionType> actualHotelRoomsTypes = new HashMap<Integer, AuctionType>();
+	//private final Map<Integer, AuctionType> actualHotelRoomsTypes = new HashMap<Integer, AuctionType>();
 
 	/** first value represents day, second if a corresponding event has been allocated or not (either EVENT_ALLIGATOR_WRESTLING, EVENT_AMUSEMENT, EVENT_MUSEUM or None */
-	private final Map<Integer, AuctionType> actualEvents = new HashMap<Integer, AuctionType>();
-	
+	//private final Map<Integer, AuctionType> actualEvents = new HashMap<Integer, AuctionType>();
+
 	private int actualInFlight;
 	private int actualOutFlight;
+
+	private ItemStockAuction itemStockAuction;
 
 
 	public ClientPackage(int client){
 		this.client = client;
+		this.itemStockAuction = new ItemStockAuction();
 	}
 
 	/**
 	 * calculates on which days overnight stays and events has to be placed in order to make a feasible package
 	 */
+	/*
 	private void ensurePresenceDays(){
 		for(int i=preferredInFlight; i<preferredOutFlight; i++){
 			actualHotelRoomsTypes.put(i, AuctionType.None);
 			actualEvents.put(i, AuctionType.None);
 		}
+	}
+	 */
+
+	public void addItem(Auction auction, int quantity){
+		itemStockAuction.setQuantity(auction, quantity);
 	}
 
 	/**
@@ -49,8 +61,8 @@ public class ClientPackage {
 	 * @param day
 	 * @return
 	 */
-	public boolean hasHotel(int day){
-		return  actualHotelRoomsTypes.containsKey(day) ? (actualHotelRoomsTypes.get(day) != AuctionType.None) : false;	
+	public boolean hasHotelAt(int day){
+		return  itemStockAuction.getQuantityByCategory(AuctionCategory.HOTEL, day) > 0;	
 	}
 
 	/**
@@ -59,7 +71,7 @@ public class ClientPackage {
 	 * @return
 	 */
 	public boolean hasEventAt(int day){
-		return actualEvents.containsKey(day) ? (actualEvents.get(day) != AuctionType.None) : false;
+		return itemStockAuction.getQuantityByCategory(AuctionCategory.ENTERTAINMENT, day) > 0;	
 	}
 
 	/**
@@ -67,8 +79,8 @@ public class ClientPackage {
 	 * @param type
 	 * @return
 	 */
-	public boolean hasSameEvent(AuctionType type){
-		return (actualEvents.containsValue(type));
+	public boolean hasSameEvent(Auction auction){
+		return (itemStockAuction.getQuantity(auction) > 0);
 	}
 
 	/**
@@ -129,24 +141,22 @@ public class ClientPackage {
 		System.out.println("clientpackage: outflight set on day"+outFlight);
 	}
 
-	/**
-	 * Is the given day one of the trip
-	 * @param day
-	 * @return
-	 */
-	public boolean isPresenceDay(int day){
-		return actualHotelRoomsTypes.containsKey(day);
-	}
 
+/*
 	public void setActualHotelRooms(int day, AuctionType type){
 		actualHotelRoomsTypes.put(day, type);
 		System.out.println("clientpackage: hotel room set on day"+day);
 	}
+	*/
 
+	/**
+	 * return which type of hotel is currently in the itemstock stored
+	 * @return
+	 */
 	public AuctionType getCurrenHotelType(){
-		if(actualHotelRoomsTypes.containsValue(AuctionType.GOOD_HOTEL)){
+		if(itemStockAuction.containsItemsOfGivenAuctionType(AuctionType.GOOD_HOTEL)){
 			return AuctionType.GOOD_HOTEL;
-		}else if(actualHotelRoomsTypes.containsValue(AuctionType.CHEAP_HOTEL)){
+		}else if(itemStockAuction.containsItemsOfGivenAuctionType(AuctionType.CHEAP_HOTEL)){
 			return AuctionType.CHEAP_HOTEL;
 		} else {
 			return AuctionType.None;
@@ -157,29 +167,31 @@ public class ClientPackage {
 	 * returns on which days hotel rooms are still needed
 	 * @return
 	 */
-	public List<Integer> getNeedForHotelDays(){
+	public List<Integer> getNeedForHotelDays(ClientPreferences clientPreferences){
 
 		List<Integer> missingDays = new ArrayList<Integer>();
 
-		for(Integer day : actualHotelRoomsTypes.keySet()){
-			if(actualHotelRoomsTypes.get(day) == AuctionType.None){
+		for(Integer day : clientPreferences.getPresenceDays()){
+			
+			if(itemStockAuction.getQuantityByCategory(AuctionCategory.HOTEL, day) <= 0){
 				missingDays.add(day);
 			}
 		}
 
 		return missingDays;
 	}
-	
+
 	/**
 	 * return on which days entertainment events are still needed
 	 * @return
 	 */
-	public List<Integer> getNeedForEvents(){
+	public List<Integer> getNeedForEvents(ClientPreferences clientPreferences){
 
 		List<Integer> missingDays = new ArrayList<Integer>();
 
-		for(Integer day : actualEvents.keySet()){
-			if(actualHotelRoomsTypes.get(day) == AuctionType.None){
+		for(Integer day : clientPreferences.getPresenceDays()){
+
+			if(itemStockAuction.getQuantityByCategory(AuctionCategory.ENTERTAINMENT, day) <= 0){
 				missingDays.add(day);
 			}
 		}
@@ -187,39 +199,15 @@ public class ClientPackage {
 		return missingDays;
 	}
 
-	public boolean hasAtLeastOneHotelRoom(){
-		return (actualHotelRoomsTypes.size() > 0);
+	public boolean hasAtLeastOneItemOf(AuctionType type){
+		return (itemStockAuction.containsItemsOfGivenAuctionType(type));
 	}
 
-
-	public void setEvent(int day, AuctionType type){
-		actualEvents.put(day, type);
-		System.out.println("clientpackage: event type "+type.toString()+" set on day"+day);
-	}
-
-
-
-	/**
-	 * returns the number of days of the whole trip
-	 * @return
-	 */
-	public int getTripDuration() {
-		return getPresenceDuration() + 1;
-	}
-
-	/**
-	 * return the number of days on which the client needs hotels and can join events
-	 * @return
-	 */
-	public int getPresenceDuration(){
-		return (actualHotelRoomsTypes != null) ? actualHotelRoomsTypes.size() : 0;
-	}
-	
 	/**
 	 * returns true if the package has an in- and outflight as well as rooms for every night between this dates
 	 * @return
 	 */
-	public boolean isTravelFeasible(){
+	public boolean isTravelFeasible(ClientPreferences clientPreferences){
 		
 		boolean feasible = false;
 		
@@ -227,11 +215,13 @@ public class ClientPackage {
 		if(this.hasInFlight() && this.hasOutFlight()){
 			
 			//check if there is no need for hotel rooms anymore
-			feasible = this.getNeedForHotelDays().size() == 0;
+			feasible = this.getNeedForHotelDays(clientPreferences).size() == 0;
 			
 		}
 		
 		return feasible;
 	}
+
+
 
 }
