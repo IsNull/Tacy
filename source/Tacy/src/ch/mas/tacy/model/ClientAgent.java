@@ -198,6 +198,7 @@ public class ClientAgent {
 	 * Handle the flights
 	 */
 	private void handleFlights(){
+		System.out.println("handleflights");
 		if(!clientPackage.hasInFlight()){
 			allocFlight(clientPackage.getPreferredInFlight(), AuctionType.INFLIGHT);
 		}
@@ -221,18 +222,29 @@ public class ClientAgent {
 
 		Auction auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT, flightType, day);
 		Quote quote = auctionManager.getCurrentQuote(auction);
-		float currentAskPrice = quote.getAskPrice();
+		long gameduration = agent.getGameTime();
+		long pointOfReturn = 3 * 60 * 1000;
+		
+		System.out.println(gameduration);
+		System.out.println(pointOfReturn);
+		
+		if(quote != null){
+			System.out.println("quote not null");
+			float currentAskPrice = quote.getAskPrice();
+			
+			if(virgin){
+				System.out.println("virgin");
+				//set an offset of 50 to the initial ask price
+				float suggestedPrice = currentAskPrice - 50;
 
-		if(virgin){
-			//set an offset of 50 to the initial ask price
-			float suggestedPrice = currentAskPrice - 50;
-
-			//request this flight to the suggest price
-			tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
-			virgin = false; // bad bad :)
-		} else if (agent.getGameTime() > 3 * 60 * 1000 || auctionManager.getPriceGrowByValue(auction, 100)){
-			//replace pending bid with new one which will match the ask price immediately
-			tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
+				//request this flight to the suggest price
+				tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
+				virgin = false; // bad bad :)
+			} else if (gameduration > pointOfReturn || auctionManager.getPriceGrowByValue(auction, 100)){
+				//replace pending bid with new one which will match the ask price immediately
+				System.out.println("not virgin");
+				tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
+			}
 		}
 	}
 
