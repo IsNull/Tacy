@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import sun.awt.SunToolkit.InfiniteLoop;
+import sun.misc.Cleaner;
 
 import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
@@ -534,7 +535,8 @@ public class ClientAgent {
 		clientPreferences.setPremiumValueAmusementPark(agent.getClientPreference(client, ClientPreferenceType.E2));
 		clientPreferences.setPremiumValuevMuseum(agent.getClientPreference(client, ClientPreferenceType.E3));
 
-		clientPreferences.toString();
+		System.out.println("client "+client+" preferences:");
+		System.out.println(clientPreferences.toString());
 	}
 
 
