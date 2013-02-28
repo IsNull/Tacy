@@ -1699,6 +1699,12 @@ public class TACAgent implements Task, TACMessageReceiver {
 				while (msg.nextTag() && !msg.isTag("/ticketEndowments")) {
 					if (msg.isTag("/ticketEndowmentTuple")) {
 						addOwn(AuctionCategory.ENTERTAINMENT, type, day, quantity);
+						// inform the agent about the initial tickets
+						Transaction trans = new Transaction(getAuctionFor(
+								AuctionCategory.ENTERTAINMENT, type, day),
+								quantity,
+								0);
+						agent.transaction(trans);
 					} else if (msg.isTag("type")) {
 						type = AuctionType.byValue(msg.getValueAsInt(-1));
 					} else if (msg.isTag("day")) {
