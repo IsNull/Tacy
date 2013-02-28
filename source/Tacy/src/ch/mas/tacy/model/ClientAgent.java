@@ -268,8 +268,11 @@ public class ClientAgent {
 				Quote quote = auctionManager.getCurrentQuote(auction);
 				int alloc = agent.getAllocation(auction);
 
-				//if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
-				if(quoteChangeManager.tryVisit(auction)){
+				if(!quote.hasHQW(agent.getBid(auction))){
+					tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+20);
+				}
+				if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
+			
 					tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
 					if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+quote.getAskPrice()+50);}
 				}
@@ -537,6 +540,7 @@ public class ClientAgent {
 
 		System.out.println("client "+client+" preferences:");
 		System.out.println(clientPreferences.toString());
+		System.out.println("----------------------------------------");
 	}
 
 
