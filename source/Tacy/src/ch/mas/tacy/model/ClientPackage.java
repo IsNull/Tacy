@@ -32,12 +32,12 @@ public class ClientPackage {
 	private int actualInFlight;
 	private int actualOutFlight;
 
-	private ItemStockAuction itemStockAuction;
+	private AuctionItemStock itemStockAuction;
 
 
 	public ClientPackage(int client){
 		this.client = client;
-		this.itemStockAuction = new ItemStockAuction();
+		this.itemStockAuction = new AuctionItemStock();
 	}
 
 	/**

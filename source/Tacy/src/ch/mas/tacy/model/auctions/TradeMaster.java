@@ -8,11 +8,11 @@ import java.util.logging.Logger;
 
 import ch.mas.tacy.Services;
 import ch.mas.tacy.TacyAgent;
+import ch.mas.tacy.model.AuctionItemStock;
 import ch.mas.tacy.model.ClientAgent;
 import ch.mas.tacy.model.ClientManager;
 import ch.mas.tacy.model.ClientPackageAllocationStrategy;
 import ch.mas.tacy.model.IClientPackageAllocationStrategy;
-import ch.mas.tacy.model.ItemStock;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.Bid;
@@ -46,10 +46,10 @@ public class TradeMaster {
 
 
 	/** holds all items we own */
-	private final ItemStock stock = new ItemStock();
+	private final AuctionItemStock stock = new AuctionItemStock();
 
 	/** holds all item which are currently not assigned to a sub agent */
-	private final ItemStock avaiableItems = new ItemStock();
+	private final AuctionItemStock avaiableItems = new AuctionItemStock();
 
 
 	public TradeMaster(TACAgent agent){
@@ -80,7 +80,9 @@ public class TradeMaster {
 
 		ItemRequest request = findRequest(auction, client);
 
-		log.fine("tradeMaster: updateRequestedItem() " + client + " " + auction + " quantity="+amount+" price="+price );
+		String requestUpdate = "tradeMaster: updateRequestedItem() " + client + " " + auction + " quantity="+amount+" price="+price;
+		log.fine(requestUpdate);
+		System.out.println(requestUpdate);
 
 		if(request == null)
 		{
@@ -111,19 +113,18 @@ public class TradeMaster {
 	 * Client request will become undone when an desired item was assigned to one of the clients
 	 */
 	private void reallocateItems(){
-
 		ClientManager clientManager = Services.instance().resolve(ClientManager.class);
 		packageAllocator.assignItemsToClientPackages(clientManager.getAllClientAgents(), avaiableItems);
-
 	}
 
 	/**
 	 * Send the necessary bids, withdraw no longer necessary bids etc.!
 	 * 
-	 * 
-	 * 
 	 */
 	private void updateBids(){
+
+
+		printRequestTable();
 
 		log.fine("TradeMaster: updating bids...");
 
@@ -132,7 +133,6 @@ public class TradeMaster {
 			Auction auction = TACAgent.getAuction(i);
 
 			List<ItemRequest> pendingRequests = findAllRequests(auction);
-
 
 			int requested_quantity = sumQuantity(pendingRequests);
 			Bid currentBid = agent.getBid(auction);
@@ -147,6 +147,7 @@ public class TradeMaster {
 
 				if(requested_quantity != 0){
 					agent.submitBid(newBid);
+					System.out.println("submitted new Bid: " + newBid);
 				}
 			}else{
 				// we have a current bid
@@ -163,7 +164,24 @@ public class TradeMaster {
 				}
 			}
 		}
+	}
 
+	private void printRequestTable(){
+
+		System.out.println("-------------------------------------------");
+
+		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
+			Auction auction = TACAgent.getAuction(i);
+			if(requests.containsKey(auction)){
+				List<ItemRequest> itemRequests = requests.get(auction);
+
+				for (ItemRequest itemRequest : itemRequests) {
+					System.out.println(auction + "/t" + itemRequest);  
+				}
+			}
+		}
+
+		System.out.println("-------------------------------------------");
 
 	}
 

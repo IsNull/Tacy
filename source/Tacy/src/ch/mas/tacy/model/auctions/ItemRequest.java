@@ -47,5 +47,10 @@ public class ItemRequest {
 		this.price = price;
 	}
 
+	@Override
+	public String toString(){
+		return getOriginator() + " " + getAmount() + "stk " + (int)getPrice() + ".-";
+	}
+
 
 }

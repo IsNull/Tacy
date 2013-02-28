@@ -1,14 +1,11 @@
 package ch.mas.tacy.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
-import ch.mas.tacy.model.agentware.TACAgent;
 
-public class ItemStockAuction extends ItemStock<Auction> {
+
+public class AuctionItemStock extends ItemStock<Auction> {
 
 	/**
 	 * returns the quantity of the given category on the given day
@@ -58,7 +55,7 @@ public class ItemStockAuction extends ItemStock<Auction> {
 	 * @return
 	 */
 	public boolean containsItemsOfGivenAuctionType(AuctionType type){
-		
+
 		synchronized (stockLock) {
 
 			int quantity = 0;
