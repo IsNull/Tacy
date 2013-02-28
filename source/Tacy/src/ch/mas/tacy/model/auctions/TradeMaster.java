@@ -310,6 +310,9 @@ public class TradeMaster {
 	 * @param transaction
 	 */
 	public void onServerTransaction(Transaction transaction){
+
+		System.err.println("onServerTransaction: " + transaction);
+
 		if(transaction.getQuantity() > 0){
 			// we have won the auction and bought the item, thus we can now update our stock details
 			transact(transaction.getAuction(), transaction.getQuantity());
