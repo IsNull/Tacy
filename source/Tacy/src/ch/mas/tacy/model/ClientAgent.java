@@ -28,6 +28,8 @@ import ch.mas.tacy.model.auctions.ValuedAuction;
  */
 public class ClientAgent {
 
+	private boolean logRequests = false;
+	private boolean logWant = false;
 	private boolean virgin = true;
 	private final TACAgent agent;
 	private final ClientPackage clientPackage;
@@ -137,11 +139,11 @@ public class ClientAgent {
 			if(type.equals(AuctionType.INFLIGHT) &&
 					!clientPackage.hasInFlight() && clientPreferences.getPreferredInFlight() == auctionday){
 				quantity = 1;
-				System.out.println("clientagent: client "+client+" wants " +quantity+" inflight for day "+auctionday);
+				if(logWant){System.out.println("clientagent: client "+client+" wants " +quantity+" inflight for day "+auctionday);}
 			} else if(type.equals(AuctionType.OUTFLIGHT) && 
 					!clientPackage.hasOutFlight() && clientPreferences.getPreferredOutFlight() == auctionday){
 				quantity = 1;
-				System.out.println("clientagent: client "+client+" wants " +quantity+" outflights for day "+auctionday);
+				if(logWant){System.out.println("clientagent: client "+client+" wants " +quantity+" outflights for day "+auctionday);}
 			}
 			break;
 
@@ -159,7 +161,7 @@ public class ClientAgent {
 				// in the package and not already existing in package
 				if(clientPackage.getCurrenHotelType().equals(type) || clientPackage.getCurrenHotelType().equals(AuctionType.None)){
 					quantity = 1;
-					System.out.println("clientagent: client "+client+" wants " +quantity+" hotel rooms for day "+auctionday);
+					if(logWant){System.out.println("clientagent: client "+client+" wants " +quantity+" hotel rooms for day "+auctionday);}
 				}
 			}
 			break;
@@ -171,13 +173,13 @@ public class ClientAgent {
 			if(!clientPackage.hasEventAt(auctionday) && !clientPackage.hasSameEvent(item)){
 				if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPreferences.getPremiumValueAlligatorWrestling() != 0){
 					quantity = 1;
-					System.out.println("clientagent: client "+client+" wants " +quantity+" event type alligator wrestling for day "+auctionday);
+					if(logWant){System.out.println("clientagent: client "+client+" wants " +quantity+" event type alligator wrestling for day "+auctionday);}
 				}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPreferences.getPremiumValueAmusementPark() != 0){
 					quantity = 1;
-					System.out.println("clientagent: client "+client+" wants " +quantity+" event type amusement park for day "+auctionday);
+					if(logWant){System.out.println("clientagent: client "+client+" wants " +quantity+" event type amusement park for day "+auctionday);}
 				}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPreferences.getPremiumValuevMuseum() != 0){
 					quantity = 1;
-					System.out.println("clientagent: client "+client+" wants " +quantity+" event type museum for day "+auctionday);
+					if(logWant){System.out.println("clientagent: client "+client+" wants " +quantity+" event type museum for day "+auctionday);}
 				}
 			}
 
@@ -234,19 +236,19 @@ public class ClientAgent {
 			float currentAskPrice = quote.getAskPrice();
 
 			if(virgin){
-				System.out.println("client is virgin");
+				System.out.println("client "+client+" is virgin");
 				//set an offset of 50 to the initial ask price
 				float suggestedPrice = currentAskPrice - 50;
 
 				//request this flight to the suggest price
 				tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
-				System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+suggestedPrice);
+				if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+suggestedPrice);}
 				virgin = false; // bad bad :)
 			} else if (gameduration > pointOfReturn || auctionManager.getPriceGrowByValue(auction, 100)){
 				//replace pending bid with new one which will match the ask price immediately
 				//System.out.println("not virgin");
 				tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
-				System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+currentAskPrice+1);
+				if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+currentAskPrice+1);}
 			}
 		}
 	}
@@ -268,7 +270,7 @@ public class ClientAgent {
 				//if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
 				if(quoteChangeManager.tryVisit(auction)){
 					tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
-					System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+quote.getAskPrice()+50);
+					if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+quote.getAskPrice()+50);}
 				}
 
 			}
@@ -378,6 +380,7 @@ public class ClientAgent {
 				if(missingEventDays.contains(day))
 				{
 					tradeMaster.updateRequestedItem(this, valuedAuction.getAuction(), 1, auctionManager.getCurrentQuote(valuedAuction.getAuction()).getAskPrice()+1);
+					if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+valuedAuction.getAuction().getType().toString()+" for $"+auctionManager.getCurrentQuote(valuedAuction.getAuction()).getAskPrice()+1);}
 				}
 			}
 
