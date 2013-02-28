@@ -55,11 +55,11 @@ public class ClientAgent {
 	public ClientPackage getClientPackage() {
 		return clientPackage;
 	}
-	
+
 	public ClientPreferences getClientPreferences(){
 		return clientPreferences;
 	}
-	
+
 	public void setClientPreferences(ClientPreferences clientPreferences){
 		this.clientPreferences = clientPreferences;
 	}
@@ -137,11 +137,11 @@ public class ClientAgent {
 			if(type.equals(AuctionType.INFLIGHT) &&
 					!clientPackage.hasInFlight() && clientPreferences.getPreferredInFlight() == auctionday){
 				quantity = 1;
-				System.out.println("clientagent: want" +quantity+" inflight for "+auctionday);
+				System.out.println("clientagent: client "+client+" wants " +quantity+" inflight for day "+auctionday);
 			} else if(type.equals(AuctionType.OUTFLIGHT) && 
 					!clientPackage.hasOutFlight() && clientPreferences.getPreferredOutFlight() == auctionday){
 				quantity = 1;
-				System.out.println("clientagent: want" +quantity+" outflights for "+auctionday);
+				System.out.println("clientagent: client "+client+" wants " +quantity+" outflights for day "+auctionday);
 			}
 			break;
 
@@ -159,7 +159,7 @@ public class ClientAgent {
 				// in the package and not already existing in package
 				if(clientPackage.getCurrenHotelType().equals(type) || clientPackage.getCurrenHotelType().equals(AuctionType.None)){
 					quantity = 1;
-					System.out.println("clientagent: want" +quantity+" hotel rooms for "+auctionday);
+					System.out.println("clientagent: client "+client+" wants " +quantity+" hotel rooms for day "+auctionday);
 				}
 			}
 			break;
@@ -171,13 +171,13 @@ public class ClientAgent {
 			if(!clientPackage.hasEventAt(auctionday) && !clientPackage.hasSameEvent(item)){
 				if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPreferences.getPremiumValueAlligatorWrestling() != 0){
 					quantity = 1;
-					System.out.println("clientagent: want" +quantity+" event type alligator wrestling for "+auctionday);
+					System.out.println("clientagent: client "+client+" wants " +quantity+" event type alligator wrestling for day "+auctionday);
 				}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPreferences.getPremiumValueAmusementPark() != 0){
 					quantity = 1;
-					System.out.println("clientagent: want" +quantity+" event type amusement park for "+auctionday);
+					System.out.println("clientagent: client "+client+" wants " +quantity+" event type amusement park for day "+auctionday);
 				}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPreferences.getPremiumValuevMuseum() != 0){
 					quantity = 1;
-					System.out.println("clientagent: want" +quantity+" event type museum for "+auctionday);
+					System.out.println("clientagent: client "+client+" wants " +quantity+" event type museum for day "+auctionday);
 				}
 			}
 
@@ -198,12 +198,14 @@ public class ClientAgent {
 	 * Handle the flights
 	 */
 	private void handleFlights(){
-		if(!clientPackage.hasInFlight()){
-			allocFlight(clientPreferences.getPreferredInFlight(), AuctionType.INFLIGHT);
-		}
+		if(clientPreferences != null){
+			if(!clientPackage.hasInFlight()){
+				allocFlight(clientPreferences.getPreferredInFlight(), AuctionType.INFLIGHT);
+			}
 
-		if(!clientPackage.hasOutFlight()){
-			allocFlight(clientPreferences.getPreferredOutFlight(), AuctionType.OUTFLIGHT);
+			if(!clientPackage.hasOutFlight()){
+				allocFlight(clientPreferences.getPreferredOutFlight(), AuctionType.OUTFLIGHT);
+			}
 		}
 	}
 
@@ -223,14 +225,14 @@ public class ClientAgent {
 		Quote quote = auctionManager.getCurrentQuote(auction);
 		long gameduration = agent.getGameTime();
 		long pointOfReturn = 3 * 60 * 1000;
-		
+
 		//System.out.println(gameduration);
 		//System.out.println(pointOfReturn);
-		
+
 		if(quote != null){
 			//System.out.println("quote not null");
 			float currentAskPrice = quote.getAskPrice();
-			
+
 			if(virgin){
 				System.out.println("client is virgin");
 				//set an offset of 50 to the initial ask price
@@ -255,20 +257,22 @@ public class ClientAgent {
 	 */
 	private void handleHotels(){
 
+		if(clientPreferences != null){
+			List<Integer> missingHoteDays = clientPackage.getNeedForHotelDays(clientPreferences);
 
-		List<Integer> missingHoteDays = clientPackage.getNeedForHotelDays(clientPreferences);
+			for(Integer day : missingHoteDays){
+				Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, isTTProfitable(), day);
+				Quote quote = auctionManager.getCurrentQuote(auction);
+				int alloc = agent.getAllocation(auction);
 
-		for(Integer day : missingHoteDays){
-			Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, isTTProfitable(), day);
-			Quote quote = auctionManager.getCurrentQuote(auction);
-			int alloc = agent.getAllocation(auction);
-			if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
+				//if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
+				if(quoteChangeManager.tryVisit(auction)){
+					tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
+					System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+quote.getAskPrice()+50);
+				}
 
-				tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
 			}
-
 		}
-
 
 		/*
 		Auction auction = quote.getAuction();
@@ -352,32 +356,32 @@ public class ClientAgent {
 	 */
 	public void handleEntertainment(){
 
-		List<Integer> missingEventDays = clientPackage.getNeedForEvents(clientPreferences);
-		//Map<Integer, AuctionType> plannedEvents = new HashMap<Integer, AuctionType>();
+		if(clientPreferences != null){
 
-		// clear all pending requests
-		List<ItemRequest> allEntertainmentRequests = tradeMaster.findAllRequests(this, AuctionCategory.ENTERTAINMENT);
-		for (ItemRequest itemRequest : allEntertainmentRequests) {
-			tradeMaster.updateRequestedItem(this, itemRequest.getAuction(), 0, 0);
-		}
+			List<Integer> missingEventDays = clientPackage.getNeedForEvents(clientPreferences);
+			//Map<Integer, AuctionType> plannedEvents = new HashMap<Integer, AuctionType>();
 
-		// for each free day, ensure that we have an item-event request with a given price
-
-		// check if we have any free entertainment day, if not -> abort
-
-		List<ValuedAuction> sortedValues = calculateEntertainmentValues();
-
-		for (ValuedAuction valuedAuction : sortedValues) {
-			int day = valuedAuction.getAuction().getAuctionDay();
-			if(missingEventDays.contains(day))
-			{
-				// do not forget to clear all pending bids first ;)
-
-				tradeMaster.updateRequestedItem(this, valuedAuction.getAuction(), 1, auctionManager.getCurrentQuote(valuedAuction.getAuction()).getAskPrice()+1);
+			// clear all pending requests
+			List<ItemRequest> allEntertainmentRequests = tradeMaster.findAllRequests(this, AuctionCategory.ENTERTAINMENT);
+			for (ItemRequest itemRequest : allEntertainmentRequests) {
+				tradeMaster.updateRequestedItem(this, itemRequest.getAuction(), 0, 0);
 			}
+
+			// for each free day, ensure that we have an item-event request with a given price
+
+			// check if we have any free entertainment day, if not -> abort
+
+			List<ValuedAuction> sortedValues = calculateEntertainmentValues();
+
+			for (ValuedAuction valuedAuction : sortedValues) {
+				int day = valuedAuction.getAuction().getAuctionDay();
+				if(missingEventDays.contains(day))
+				{
+					tradeMaster.updateRequestedItem(this, valuedAuction.getAuction(), 1, auctionManager.getCurrentQuote(valuedAuction.getAuction()).getAskPrice()+1);
+				}
+			}
+
 		}
-
-
 
 
 		/*
@@ -446,16 +450,22 @@ public class ClientAgent {
 
 			for(Integer day : missingDays){
 				Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.CHEAP_HOTEL, day);
-				hypotheticalCostSS += auctionManager.getCurrentQuote(auction).getAskPrice();
+				Quote currentQuote = auctionManager.getCurrentQuote(auction);
+				if(currentQuote != null){
+					hypotheticalCostSS += currentQuote.getAskPrice();
+				}
 
-				auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.GOOD_HOTEL, day);
-				hypotheticalCostTT += auctionManager.getCurrentQuote(auction).getAskPrice();			
+				Auction auction2 = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.GOOD_HOTEL, day);
+				Quote currentQuote2 = auctionManager.getCurrentQuote(auction2);
+				if(currentQuote2 != null){
+					hypotheticalCostTT += currentQuote2.getAskPrice();			
+				}
 			}
 
 			int difference = hypotheticalCostTT-hypotheticalCostSS; //could also be negative which would mean that the current price for staying in TT is cheaper than for staying in ss.
 
 
-			return (clientPreferences.getPremiumValueHotel() > difference) ? AuctionType.GOOD_HOTEL : AuctionType.CHEAP_HOTEL;
+			return (clientPreferences.getPremiumValueHotel() <= difference) ? AuctionType.CHEAP_HOTEL : AuctionType.GOOD_HOTEL;
 
 		} else {
 
@@ -511,16 +521,17 @@ public class ClientAgent {
 
 	//gets called when client preferences are available (at game start)
 	public void updatePreferences() {
-		
+
 		clientPreferences =  new ClientPreferences(client);
-		
+
 		clientPreferences.setPreferredInFlight(agent.getClientPreference(client, ClientPreferenceType.ARRIVAL));
 		clientPreferences.setPreferredOutFlight(agent.getClientPreference(client, ClientPreferenceType.DEPARTURE));
 		clientPreferences.setPremiumValueHotel(agent.getClientPreference(client, ClientPreferenceType.HOTEL_VALUE));
 		clientPreferences.setPremiumValueAlligatorWrestling(agent.getClientPreference(client, ClientPreferenceType.E1));
 		clientPreferences.setPremiumValueAmusementPark(agent.getClientPreference(client, ClientPreferenceType.E2));
 		clientPreferences.setPremiumValuevMuseum(agent.getClientPreference(client, ClientPreferenceType.E3));
-	
+
+		clientPreferences.toString();
 	}
 
 
