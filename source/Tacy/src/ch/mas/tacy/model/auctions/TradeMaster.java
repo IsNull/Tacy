@@ -176,7 +176,7 @@ public class TradeMaster {
 				List<ItemRequest> itemRequests = requests.get(auction);
 
 				for (ItemRequest itemRequest : itemRequests) {
-					System.out.println(auction + "/t" + itemRequest);  
+					System.out.println(auction + "\t" + itemRequest);  
 				}
 			}
 		}
