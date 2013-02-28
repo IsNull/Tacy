@@ -19,7 +19,7 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 	 * 
 	 */
 	@Override
-	public void assignItemsToClientPackages(Iterable<ClientAgent> agents, ItemStock avaiableItems) {
+	public void assignItemsToClientPackages(Iterable<ClientAgent> agents, AuctionItemStock avaiableItems) {
 
 
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {

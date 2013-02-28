@@ -16,6 +16,7 @@ import ch.mas.tacy.model.IClientPackageAllocationStrategy;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.Bid;
+import ch.mas.tacy.model.agentware.Quote;
 import ch.mas.tacy.model.agentware.TACAgent;
 import ch.mas.tacy.model.agentware.Transaction;
 import ch.mas.tacy.util.Lists;
@@ -123,7 +124,6 @@ public class TradeMaster {
 	 */
 	private void updateBids(){
 
-
 		printRequestTable();
 
 		log.fine("TradeMaster: updating bids...");
@@ -135,36 +135,72 @@ public class TradeMaster {
 			List<ItemRequest> pendingRequests = findAllRequests(auction);
 
 			int requested_quantity = sumQuantity(pendingRequests);
+			int avaiable_quantity = avaiableItems.getQuantity(auction);
+
+			int deltaQuantity = requested_quantity - avaiable_quantity;
+
 			Bid currentBid = agent.getBid(auction);
 
-			float suggestedPrice = maxPrice(pendingRequests);
+
+			float suggestedPrice = 0;
 
 			Bid newBid = new Bid(auction);
-			newBid.addBidPoint(requested_quantity, suggestedPrice);
+			if(deltaQuantity > 0){
+				// we need to buy
+				suggestedPrice = maxPrice(pendingRequests);
+				newBid.addBidPoint(deltaQuantity, suggestedPrice);
+			}else if(deltaQuantity < 0){
+				// we need to sell
+				suggestedPrice = getSellPrice(auction);
+				newBid.addBidPoint(deltaQuantity, suggestedPrice);
+			}else{ // deltaQuantity = 0
+				// we dont need anything - cancel existing bids
+				suggestedPrice = 0;
+				newBid.addBidPoint(deltaQuantity, suggestedPrice);
+			}
 
 
 			if(currentBid == null){ // no current Bid
 
-				if(requested_quantity != 0){
+				if(deltaQuantity != 0){ // no need to create a 0 Bid
 					agent.submitBid(newBid);
 					System.out.println("submitted new Bid: " + newBid);
 				}
 			}else{
 				// we have a current bid
-				if(currentBid.getQuantity() != requested_quantity || currentBid.getMaxPrice() != suggestedPrice){
-					//which does no longer match.
+				if(currentBid.getQuantity() != deltaQuantity || currentBid.getMaxPrice() != suggestedPrice){
+					// which does no longer match our preferred Bid values
 					if(!currentBid.isPreliminary())
 					{
 						agent.replaceBid(currentBid, newBid);
 						System.out.println("replaced bid:" + newBid);
-
-					}else{
-						//TODO
 					}
 				}
 			}
 		}
 	}
+
+
+
+	/**
+	 * Get the sell price for the given auction
+	 * @param auction
+	 * @return
+	 */
+	private float getSellPrice(Auction auction) {
+		float price = 0;
+		AuctionInformationManager auctionInformationManager = Services.instance().resolve(AuctionInformationManager.class);
+		Quote q = auctionInformationManager.getCurrentQuote(auction);
+
+		if(q != null)
+		{
+			price = q.getAskPrice() + (int)((Math.random()-0.5f)*40);
+		}
+
+		return price;
+	}
+
+
 
 	private void printRequestTable(){
 

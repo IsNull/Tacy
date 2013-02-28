@@ -14,6 +14,6 @@ public interface IClientPackageAllocationStrategy {
 	 * @param agents
 	 * @param avaiableItems
 	 */
-	void assignItemsToClientPackages(Iterable<ClientAgent> agents, ItemStock avaiableItems);
+	void assignItemsToClientPackages(Iterable<ClientAgent> agents, AuctionItemStock avaiableItems);
 
 }
