@@ -259,47 +259,38 @@ public class ClientAgent {
 	 */
 	private void handleHotels(){
 
+
+		for (ItemRequest r : tradeMaster.findAllRequests(this, AuctionCategory.HOTEL)) {
+			r.setAmount(0);
+			r.setPrice(0);
+		}	
+
+
 		if(clientPreferences != null){
 			List<Integer> missingHoteDays = clientPackage.getNeedForHotelDays(clientPreferences);
 
 			for(Integer day : missingHoteDays){
 				Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, isTTProfitable(), day);
+
+				tradeMaster.updateManagedRequestedItem(this, auction, 1);
+
+				/*
 				Quote quote = auctionManager.getCurrentQuote(auction);
-				int alloc = agent.getAllocation(auction);
 
 				if(quote != null){
 					if(hotelVirgin){
 						tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+20);
 					}
-					if(quoteChangeManager.tryVisit(auction) && !quote.hasHQW(agent.getBid(auction)) /*&& quote.getHQW() < alloc*/){
+					if(quoteChangeManager.tryVisit(auction) && !quote.hasHQW(agent.getBid(auction))){
 
 						tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
 						if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+quote.getAskPrice()+50);}
 					}
-				}
+			}
+				 */
 			}
 			hotelVirgin = false;
 		}
-
-		/*
-		Auction auction = quote.getAuction();
-		AuctionCategory auctionCategory = auction.getCategory();
-		if (auctionCategory == AuctionCategory.HOTEL) {
-			int alloc = agent.getAllocation(auction);
-			if (alloc > 0 && quote.hasHQW(agent.getBid(auction)) &&
-					quote.getHQW() < alloc) {
-				Bid bid = new Bid(auction);
-				// Can not own anything in hotel auctions...
-				prices[auction.getId()] = quote.getAskPrice() + 50;
-				bid.addBidPoint(alloc, prices[auction.getId()]);
-				if (DEBUG) {
-					log.finest("submitting bid with alloc="
-							+ agent.getAllocation(auction)
-							+ " own=" + agent.getOwn(auction));
-				}
-				agent.submitBid(bid);
-			}
-		 */
 
 	}
 
@@ -404,52 +395,6 @@ public class ClientAgent {
 
 		}
 
-
-		/*
-		while(missingEventDays.size() > DiffrentEventTypeCount){
-			missingEventDays.remove((int)Math.random()*DiffrentEventTypeCount);
-		}
-
-
-		for(Integer day : missingEventDays){
-				plannedEvents.put(day, value);
-		}
-
-		for(Integer day : plannedEvents.keySet()){
-			Auction auction = TACAgent.getAuctionFor(AuctionCategory.ENTERTAINMENT, isTTProfitable(), day);
-			Quote quote = auctionManager.getCurrentQuote(auction);
-			int alloc = agent.getAllocation(auction);
-			if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
-
-				tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
-			}
-
-		}
-		 */
-
-
-
-		/*
-		 * else if (auctionCategory == AuctionCategory.ENTERTAINMENT) {
-			int alloc = agent.getAllocation(auction) - agent.getOwn(auction);
-			if (alloc != 0) {
-				Bid bid = new Bid(auction);
-				if (alloc < 0)
-					prices[auction.getId()] = 200f - (agent.getGameTime() * 120f) / 720000;
-				else
-					prices[auction.getId()] = 50f + (agent.getGameTime() * 100f) / 720000;
-				bid.addBidPoint(alloc, prices[auction.getId()]);
-				if (DEBUG) {
-					log.finest("submitting bid with alloc="
-							+ agent.getAllocation(auction)
-							+ " own=" + agent.getOwn(auction));
-				}
-				agent.submitBid(bid);
-			}
-		}*
-		 */
-
-
 	}
 
 
@@ -458,7 +403,6 @@ public class ClientAgent {
 	 * @return
 	 */
 	private AuctionType isTTProfitable(){
-
 
 
 		if(clientPackage.getCurrenHotelType() == AuctionType.None){

@@ -65,6 +65,19 @@ public class TradeMaster {
 		}
 	}
 
+	/**
+	 * Updates the given requested item(auction) amount
+	 * 
+	 * The request is managed by the trademaster, which means
+	 * that prices and bidding are handled by the trademaster
+	 * 
+	 * @param clientAgent
+	 * @param auction
+	 * @param amount
+	 */
+	public void updateManagedRequestedItem(ClientAgent clientAgent, Auction auction, int amount) {
+		updateRequestedItem(clientAgent, auction, amount, ItemRequest.ManagedPrice);
+	}  
 
 
 	/**
@@ -139,12 +152,10 @@ public class TradeMaster {
 
 			int deltaQuantity = requested_quantity - avaiable_quantity;
 
-			Bid currentBid = agent.getBid(auction);
-
-
 			float suggestedPrice = 0;
 
 			Bid newBid = new Bid(auction);
+
 			if(deltaQuantity > 0){
 				// we need to buy
 				suggestedPrice = maxPrice(pendingRequests);
@@ -159,26 +170,38 @@ public class TradeMaster {
 				newBid.addBidPoint(deltaQuantity, suggestedPrice);
 			}
 
+			sendBid(newBid);
 
-			if(currentBid == null){ // no current Bid
+		}
+	}
 
-				if(deltaQuantity != 0){ // no need to create a 0 Bid
-					agent.submitBid(newBid);
-					System.out.println("submitted new Bid: " + newBid);
-				}
-			}else{
-				// we have a current bid
-				if(currentBid.getQuantity() != deltaQuantity || currentBid.getMaxPrice() != suggestedPrice){
-					// which does no longer match our preferred Bid values
-					if(!currentBid.isPreliminary())
-					{
-						agent.replaceBid(currentBid, newBid);
-						System.out.println("replaced bid:" + newBid);
-					}
+	/**
+	 * Sends the given Bid to the server.
+	 * Handling new Bids, Bid replacement
+	 * @param newBid
+	 */
+	private void sendBid(Bid newBid){
+		Bid currentBid = agent.getBid(newBid.getAuction());
+
+		if(currentBid == null){ // no current Bid
+
+			if(newBid.getQuantity() != 0){ // no need to create a new zero quantity Bid
+				agent.submitBid(newBid);
+				System.out.println("submitted new Bid: " + newBid);
+			}
+		}else{
+			// we have a current bid
+			if(currentBid.getQuantity() != newBid.getQuantity() || currentBid.getMaxPrice() != newBid.getMaxPrice()){
+				// which does no longer match our preferred Bid values
+				if(!currentBid.isPreliminary())
+				{
+					agent.replaceBid(currentBid, newBid);
+					System.out.println("replaced bid:" + newBid);
 				}
 			}
 		}
 	}
+
 
 
 
@@ -386,7 +409,10 @@ public class TradeMaster {
 	 */
 	protected void onRequestAdded(ItemRequest request) {
 
-	}  
+	}
+
+
+
 
 
 }

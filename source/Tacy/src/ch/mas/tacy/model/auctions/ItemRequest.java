@@ -10,6 +10,8 @@ import ch.mas.tacy.model.agentware.Auction;
  */
 public class ItemRequest {
 
+	public static final float ManagedPrice = -1;
+
 	private ClientAgent originator;
 	private Auction auction;
 	private int amount; 
@@ -22,6 +24,10 @@ public class ItemRequest {
 		this.auction = auction;
 		this.amount = amount;
 		this.price = price;
+	}
+
+	public boolean isManaged(){
+		return price == ManagedPrice;
 	}
 
 
