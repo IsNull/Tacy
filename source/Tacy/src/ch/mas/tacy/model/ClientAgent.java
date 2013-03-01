@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.management.Query;
+
 import sun.awt.SunToolkit.InfiniteLoop;
 import sun.misc.Cleaner;
 
@@ -31,7 +33,8 @@ public class ClientAgent {
 
 	private boolean logRequests = false;
 	private boolean logWant = false;
-	private boolean virgin = true;
+	private boolean flightVirgin = true;
+	private boolean hotelVirgin = true;
 	private final TACAgent agent;
 	private final ClientPackage clientPackage;
 	private ClientPreferences clientPreferences;
@@ -236,7 +239,7 @@ public class ClientAgent {
 			//System.out.println("quote not null");
 			float currentAskPrice = quote.getAskPrice();
 
-			if(virgin){
+			if(flightVirgin){
 				System.out.println("client "+client+" is virgin");
 				//set an offset of 50 to the initial ask price
 				float suggestedPrice = currentAskPrice - 50;
@@ -244,7 +247,8 @@ public class ClientAgent {
 				//request this flight to the suggest price
 				tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
 				if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+suggestedPrice);}
-				virgin = false; // bad bad :)
+				
+				flightVirgin = false;
 			} else if (gameduration > pointOfReturn || auctionManager.getPriceGrowByValue(auction, 100)){
 				//replace pending bid with new one which will match the ask price immediately
 				//System.out.println("not virgin");
@@ -268,16 +272,18 @@ public class ClientAgent {
 				Quote quote = auctionManager.getCurrentQuote(auction);
 				int alloc = agent.getAllocation(auction);
 
-				if(!quote.hasHQW(agent.getBid(auction))){
-					tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+20);
-				}
-				if(quoteChangeManager.tryVisit(auction) && quote.hasHQW(agent.getBid(auction)) && quote.getHQW() < alloc){
-			
-					tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
-					if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+quote.getAskPrice()+50);}
-				}
+				if(quote != null){
+					if(hotelVirgin){
+						tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+20);
+					}
+					if(quoteChangeManager.tryVisit(auction) && !quote.hasHQW(agent.getBid(auction)) /*&& quote.getHQW() < alloc*/){
 
+						tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
+						if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+quote.getAskPrice()+50);}
+					}
+				}
 			}
+			hotelVirgin = false;
 		}
 
 		/*
@@ -326,7 +332,7 @@ public class ClientAgent {
 			}
 		}
 
-		//for each entertainment auction calculate the current profit based on what we would have to pay and what the current price for the ticket is
+		//for each entertainment auction calculate the current profit based on its premium value and what the current price for the ticket is
 		for (Auction auction : entertainmentAuctions) {
 
 			Quote currentQuote = auctionManager.getCurrentQuote(auction);
@@ -446,34 +452,38 @@ public class ClientAgent {
 	private AuctionType isTTProfitable(){
 
 
+
 		if(clientPackage.getCurrenHotelType() == AuctionType.None){
+			if(clientPreferences.getPremiumValueHotel() >= 80){
 
-			//if the difference between the total cost for SS and the total cost for TT is smaller than the clients
-			//premium value there is no point in buying TT rooms
-			int hypotheticalCostSS = 0;
-			int hypotheticalCostTT = 0;
+				//if the difference between the total cost for SS and the total cost for TT is smaller than the clients
+				//premium value there is no point in buying TT rooms
+				int hypotheticalCostSS = 0;
+				int hypotheticalCostTT = 0;
 
-			List<Integer> missingDays = clientPackage.getNeedForHotelDays(clientPreferences);
+				List<Integer> missingDays = clientPackage.getNeedForHotelDays(clientPreferences);
 
-			for(Integer day : missingDays){
-				Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.CHEAP_HOTEL, day);
-				Quote currentQuote = auctionManager.getCurrentQuote(auction);
-				if(currentQuote != null){
-					hypotheticalCostSS += currentQuote.getAskPrice();
+				for(Integer day : missingDays){
+					Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.CHEAP_HOTEL, day);
+					Quote currentQuote = auctionManager.getCurrentQuote(auction);
+					if(currentQuote != null){
+						hypotheticalCostSS += currentQuote.getAskPrice();
+					}
+
+					Auction auction2 = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.GOOD_HOTEL, day);
+					Quote currentQuote2 = auctionManager.getCurrentQuote(auction2);
+					if(currentQuote2 != null){
+						hypotheticalCostTT += currentQuote2.getAskPrice();			
+					}
 				}
 
-				Auction auction2 = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.GOOD_HOTEL, day);
-				Quote currentQuote2 = auctionManager.getCurrentQuote(auction2);
-				if(currentQuote2 != null){
-					hypotheticalCostTT += currentQuote2.getAskPrice();			
-				}
+				int difference = hypotheticalCostTT-hypotheticalCostSS; //could also be negative which would mean that the current price for staying in TT is cheaper than for staying in ss.
+
+
+				return (clientPreferences.getPremiumValueHotel() <= difference) ? AuctionType.CHEAP_HOTEL : AuctionType.GOOD_HOTEL;
+			}else {
+				return AuctionType.CHEAP_HOTEL;
 			}
-
-			int difference = hypotheticalCostTT-hypotheticalCostSS; //could also be negative which would mean that the current price for staying in TT is cheaper than for staying in ss.
-
-
-			return (clientPreferences.getPremiumValueHotel() <= difference) ? AuctionType.CHEAP_HOTEL : AuctionType.GOOD_HOTEL;
-
 		} else {
 
 			return clientPackage.getCurrenHotelType();
