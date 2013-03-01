@@ -154,7 +154,7 @@ public class TradeMaster {
 				suggestedPrice = getSellPrice(auction);
 				newBid.addBidPoint(deltaQuantity, suggestedPrice);
 			}else{ // deltaQuantity = 0
-				// we dont need anything - cancel existing bids
+				// we don't need anything - cancel existing bids
 				suggestedPrice = 0;
 				newBid.addBidPoint(deltaQuantity, suggestedPrice);
 			}
