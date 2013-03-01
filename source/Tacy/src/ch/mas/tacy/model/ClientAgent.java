@@ -5,11 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.management.Query;
-
-import sun.awt.SunToolkit.InfiniteLoop;
-import sun.misc.Cleaner;
-
 import ch.mas.tacy.Services;
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
@@ -247,7 +242,7 @@ public class ClientAgent {
 				//request this flight to the suggest price
 				tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
 				if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+suggestedPrice);}
-				
+
 				flightVirgin = false;
 			} else if (gameduration > pointOfReturn || auctionManager.getPriceGrowByValue(auction, 100)){
 				//replace pending bid with new one which will match the ask price immediately
@@ -386,11 +381,24 @@ public class ClientAgent {
 			List<ValuedAuction> sortedValues = calculateEntertainmentValues();
 
 			for (ValuedAuction valuedAuction : sortedValues) {
-				int day = valuedAuction.getAuction().getAuctionDay();
+				Integer day = valuedAuction.getAuction().getAuctionDay();
 				if(missingEventDays.contains(day))
 				{
-					tradeMaster.updateRequestedItem(this, valuedAuction.getAuction(), 1, auctionManager.getCurrentQuote(valuedAuction.getAuction()).getAskPrice()+1);
-					if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+valuedAuction.getAuction().getType().toString()+" for $"+auctionManager.getCurrentQuote(valuedAuction.getAuction()).getAskPrice()+1);}
+					float suggestedPrice = auctionManager.getCurrentQuote(valuedAuction.getAuction()).getAskPrice()+1;
+
+					tradeMaster.updateRequestedItem(
+							this,
+							valuedAuction.getAuction(),
+							1, // 1 piece
+							suggestedPrice);
+
+					missingEventDays.remove((Object)day);
+
+					if(logRequests){
+						System.out.println("client with ID "+client+" requested 1 item of "+
+								valuedAuction.getAuction().getType().toString()+" for $"+
+								suggestedPrice);}
+
 				}
 			}
 
