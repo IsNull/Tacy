@@ -46,6 +46,9 @@ public class TradeMaster {
 	private final Map<Auction, List<ItemRequest>> requests = new HashMap<Auction, List<ItemRequest>>();
 
 
+	private final AuctionInformationManager auctionManager = Services.instance().resolve(AuctionInformationManager.class);
+
+
 	/** holds all items we own */
 	private final AuctionItemStock stock = new AuctionItemStock();
 
@@ -134,11 +137,12 @@ public class TradeMaster {
 	/**
 	 * Send the necessary bids, withdraw no longer necessary bids etc.!
 	 * 
+	 * Each auction has exactly one or no bid.
+	 * 
 	 */
 	private void updateBids(){
 
 		printRequestTable();
-
 		log.fine("TradeMaster: updating bids...");
 
 		// handle Bids if necessary
@@ -147,9 +151,12 @@ public class TradeMaster {
 
 			List<ItemRequest> pendingRequests = findAllRequests(auction);
 
+			// calculate quantities
+			// a positive quantity means we need to buy
+			// a negative means we can sell
+
 			int requested_quantity = sumQuantity(pendingRequests);
 			int avaiable_quantity = avaiableItems.getQuantity(auction);
-
 			int deltaQuantity = requested_quantity - avaiable_quantity;
 
 			float suggestedPrice = 0;
@@ -158,20 +165,23 @@ public class TradeMaster {
 
 			if(deltaQuantity > 0){
 				// we need to buy
-				suggestedPrice = maxPrice(pendingRequests);
+				suggestedPrice = getBuyPrice(auction, pendingRequests); 
 				newBid.addBidPoint(deltaQuantity, suggestedPrice);
 			}else if(deltaQuantity < 0){
 				// we need to sell
-				suggestedPrice = getSellPrice(auction);
-				newBid.addBidPoint(deltaQuantity, suggestedPrice);
+				if(auction.canSell()){
+					suggestedPrice = getSellPrice(auction);
+					newBid.addBidPoint(deltaQuantity, suggestedPrice);
+				}
 			}else{ // deltaQuantity = 0
 				// we don't need anything - cancel existing bids
+				// for now, we just set the price to 0
+				// so we wont buy anything if possible
 				suggestedPrice = 0;
 				newBid.addBidPoint(deltaQuantity, suggestedPrice);
 			}
 
 			sendBid(newBid);
-
 		}
 	}
 
@@ -202,7 +212,52 @@ public class TradeMaster {
 		}
 	}
 
+	/**
+	 * Returns a buy price depending on the requests, price suggestions and current quotes
+	 * @param auction
+	 * @param requests
+	 * @return
+	 */
+	private float getBuyPrice(Auction auction, Iterable<ItemRequest> requests){
 
+		float price;
+
+		/** is this a managed request? */
+		boolean ismanaged = false;
+		for (ItemRequest itemRequest : requests) {
+			if(itemRequest.isManaged()){
+				ismanaged = true;
+				break;
+			}
+		}
+
+		if(ismanaged)
+		{
+			price = getManagedBuyPrice(auction, sumQuantity(requests));
+		}else
+			price = maxPrice(requests);
+
+		return price;
+	}
+
+	/**
+	 * Calculates a bid price for the given item (auction)
+	 * @param auction
+	 * @param requiredQuantity
+	 * @return
+	 */
+	private float getManagedBuyPrice(Auction auction, int requiredQuantity)
+	{
+		float price = 0;
+
+		Quote quote = auctionManager.getCurrentQuote(auction);
+
+		if(quote != null){
+			price = quote.getAskPrice()+20;
+		}
+
+		return price;
+	}
 
 
 	/**

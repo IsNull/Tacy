@@ -37,11 +37,12 @@ public class Services implements ILocator {
 
 	public void createServices(TACAgent agent){
 		locator.registerSingleton(RiskManager.class, RiskManager.class);
-		locator.registerInstance(TradeMaster.class, new TradeMaster(agent));
 		locator.registerInstance(AuctionInformationManager.class, new AuctionInformationManager(agent));
+
+		locator.registerInstance(TradeMaster.class, new TradeMaster(agent));
 		locator.registerInstance(ClientManager.class, new ClientManager(agent));
-		
-		
+
+
 	}
 
 

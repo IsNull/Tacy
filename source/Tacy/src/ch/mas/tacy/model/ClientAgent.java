@@ -273,31 +273,12 @@ public class ClientAgent {
 				Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, isTTProfitable(), day);
 
 				tradeMaster.updateManagedRequestedItem(this, auction, 1);
-
-				/*
-				Quote quote = auctionManager.getCurrentQuote(auction);
-
-				if(quote != null){
-					if(hotelVirgin){
-						tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+20);
-					}
-					if(quoteChangeManager.tryVisit(auction) && !quote.hasHQW(agent.getBid(auction))){
-
-						tradeMaster.updateRequestedItem(this, auction, 1, quote.getAskPrice()+50);
-						if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+quote.getAskPrice()+50);}
-					}
-			}
-				 */
 			}
 			hotelVirgin = false;
 		}
 
 	}
 
-
-	public void allocHotels(int day, AuctionType hotelType){
-
-	}
 
 	/** how many diffrent event types do exist*/
 	private final static int DiffrentEventTypeCount = 3;

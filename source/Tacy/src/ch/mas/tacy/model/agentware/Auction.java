@@ -96,5 +96,14 @@ public class Auction {
 	}
 
 
+	/**
+	 * Is selling (offering) allowed in this auction?
+	 * @return
+	 */
+	public boolean canSell() {
+		return getCategory() == AuctionCategory.HOTEL;
+	}
+
+
 
 }
