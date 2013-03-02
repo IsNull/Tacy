@@ -51,7 +51,7 @@ public class Quote {
 
 	@Override
 	public String toString(){
-		return "Quote{" + auction + " askprice: " + askPrice + "}";
+		return "Quote{" + getAuction() + "; askprice=" + getAskPrice() + "bidprice=" + getBidPrice() + "}";
 	}
 
 	void clearAll() {

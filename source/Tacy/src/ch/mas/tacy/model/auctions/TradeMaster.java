@@ -288,6 +288,8 @@ public class TradeMaster {
 		return price;
 	}
 
+	private final float IncreasingAmmount = 20;
+
 	/**
 	 * Calculates a bid price for the given item (auction)
 	 * @param auction
@@ -297,14 +299,16 @@ public class TradeMaster {
 	private float getManagedBuyPrice(Auction auction, int requiredQuantity, float currentPrice)
 	{
 		float price = currentPrice;
-
 		Quote quote = auctionManager.getCurrentQuote(auction);
 
 		if(quote != null){
 
 			if(quote.getHQW() < requiredQuantity){
-				System.out.println("Increasing Bid: " + quote + "hqw is too small: " + quote.getHQW() );
-				price = quote.getAskPrice()+1;
+				System.out.println("Increasing Bid: " + quote + "; hqw is " + quote.getHQW() + " of " + requiredQuantity );
+
+				float cp = Math.max(quote.getAskPrice(), quote.getBidPrice());
+
+				price = cp+IncreasingAmmount;
 			}
 
 		}else {
