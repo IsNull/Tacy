@@ -101,7 +101,7 @@ public class Auction {
 	 * @return
 	 */
 	public boolean canSell() {
-		return getCategory() == AuctionCategory.HOTEL;
+		return getCategory() == AuctionCategory.ENTERTAINMENT;
 	}
 
 
