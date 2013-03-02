@@ -85,16 +85,18 @@ public class ClientAgent {
 	 */
 	public void onTransaction(Auction item, int quantity){
 
-		AuctionCategory category = item.getCategory();
+
+
+		// withdraw the corresponding request
+		int currentQuantity = tradeMaster.getRequestedQuantity(this, item);
+		int remainingQuantity = currentQuantity - quantity;
+		tradeMaster.updateRequestedItem(this, item, remainingQuantity);
+
+
+		// keep track in the clients package
 		AuctionType type = item.getType();
 		int auctionday = item.getAuctionDay();
 
-		//withdraw the corresponding request
-		//TODO the quantity need to be the old ordered quantity
-		tradeMaster.updateRequestedItem(this, item, quantity, 0);
-
-
-		//keep track in the clients package
 		switch(type){
 
 		case INFLIGHT:

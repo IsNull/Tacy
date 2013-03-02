@@ -82,37 +82,78 @@ public class TradeMaster {
 		updateRequestedItem(clientAgent, auction, amount, ItemRequest.ManagedPrice);
 	}  
 
+	/**
+	 * Updates the given item(auction) requested newQuantity to the given one
+	 * 
+	 * @param client The client who requests the item(s)
+	 * @param auction
+	 * @param newQuantity The new requested quantity
+	 */
+	public void updateRequestedItem(ClientAgent client, Auction auction, int newQuantity)
+	{
+		float price = 0;
+
+		ItemRequest request = findRequest(auction, client);
+		if(request != null){
+			price = request.getPrice();
+		}
+
+		updateRequestedItem(client, auction, newQuantity, price);
+	}
 
 	/**
 	 * Updates the given item(auction) requested amount and requested price
 	 * 
-	 * @param client the client requesting the item
-	 * @param auctionId the auction id, representing the item type
-	 * @param amount item amount
-	 * @param price the agent's suggested bit price
+	 * @param client The client who requests the item(s)
+	 * @param auctionId The auction id, representing the item type
+	 * @param newQuantity The new requested quantity
+	 * @param newPrice The agent's new suggested bit price
 	 */
-	public void updateRequestedItem(ClientAgent client, Auction auction, int amount, float price){
+	public void updateRequestedItem(ClientAgent client, Auction auction, int newQuantity, float newPrice){
 		assert client != null : "client can not be null";
 		assert auction != null : "auction can not be null";
 
 		ItemRequest request = findRequest(auction, client);
 
-		String requestUpdate = "tradeMaster: updateRequestedItem() " + client + " " + auction + " quantity="+amount+" price="+price;
+		String requestUpdate = "tradeMaster: updateRequestedItem() "
+				+ client + " " + auction + " quantity="+newQuantity+" price="+newPrice;
 		log.fine(requestUpdate);
 		System.out.println(requestUpdate);
 
 		if(request == null)
 		{
 			// this is a new request
-			request = new ItemRequest(client, auction, amount, price);
+			request = new ItemRequest(client, auction, newQuantity, newPrice);
 			placeRequest(request);
 		}else{
 			// update existing request
-			request.setAmount(amount);
-			request.setPrice(price);
+			request.setAmount(newQuantity);
+			request.setPrice(newPrice);
 			onRequestUpdated(request);
 		}
 	}
+
+	/**
+	 * gets the current requested quantity of the given item type by the given client
+	 * @param clientAgent
+	 * @param item
+	 * @return
+	 */
+	public int getRequestedQuantity(ClientAgent clientAgent, Auction item) {
+
+		int quantity = 0;
+		if(requests.containsKey(item))
+		{
+			List<ItemRequest> myRequests = requests.get(item);
+			for (ItemRequest itemRequest : myRequests) {
+				if(clientAgent.equals(itemRequest.getOriginator()))
+					quantity += itemRequest.getAmount();
+			}
+		}
+
+		return quantity;
+	}
+
 
 
 	/**
@@ -143,7 +184,7 @@ public class TradeMaster {
 	private void updateBids(){
 
 		printRequestTable();
-		log.fine("TradeMaster: updating bids...");
+		System.out.println("TradeMaster: updating bids...");
 
 		// handle Bids if necessary
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
@@ -469,6 +510,7 @@ public class TradeMaster {
 	protected void onRequestAdded(ItemRequest request) {
 
 	}
+
 
 
 
