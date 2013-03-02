@@ -236,15 +236,15 @@ public class ClientAgent {
 
 			if(flightVirgin){
 				System.out.println("client "+client+" is virgin");
-				//set an offset of 50 to the initial ask price
-				float suggestedPrice = currentAskPrice - 50;
+				//set an offset of 15 to the initial ask price
+				float suggestedPrice = currentAskPrice - 15;
 
 				//request this flight to the suggest price
 				tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
 				if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+suggestedPrice);}
 
 				flightVirgin = false;
-			} else if (gameduration > pointOfReturn || auctionManager.getPriceGrowByValue(auction, 100)){
+			} else if (gameduration > pointOfReturn || auctionManager.getPriceGrowByValue(auction, 15)){
 				//replace pending bid with new one which will match the ask price immediately
 				//System.out.println("not virgin");
 				tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
