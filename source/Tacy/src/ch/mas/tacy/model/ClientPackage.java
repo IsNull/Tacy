@@ -52,8 +52,13 @@ public class ClientPackage {
 	}
 	 */
 
+	/**
+	 * Adds the given quantity to the item stock (add if quantity is positive, remove if negative)
+	 * @param auction
+	 * @param quantity
+	 */
 	public void addItem(Auction auction, int quantity){
-		itemStockAuction.setQuantity(auction, quantity);
+		itemStockAuction.incrementQuantity(auction, quantity);
 	}
 
 	/**
