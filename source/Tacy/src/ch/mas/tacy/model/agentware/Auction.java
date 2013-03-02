@@ -92,7 +92,7 @@ public class Auction {
 
 	@Override
 	public String toString(){
-		return "Auction{" + getId() + "(" + getType()  + ")}";
+		return "Auction{" + getId() + "(" + getType()  + "; day " + getAuctionDay() + ")}";
 	}
 
 
