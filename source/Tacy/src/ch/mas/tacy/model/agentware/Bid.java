@@ -340,6 +340,6 @@ public class Bid {
 
 	@Override
 	public String toString(){
-		return "Bid{"+ getAuction() + ": " + getBidString() +"}";
+		return "Bid{" + getID() + "; "+ getAuction() + ": " + getBidString() +"}";
 	}
 }

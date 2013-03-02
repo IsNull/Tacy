@@ -33,11 +33,9 @@ public class TacyAgent extends AgentImpl  {
 	private TradeMaster tradeMaster; 
 	private ClientManager clientManager;
 
-	private float[] prices;
 
 	@Override
 	protected void init(ArgEnumerator args) {
-		prices = new float[TACAgent.getAuctionNo()];
 
 		Services.instance().createServices(agent);
 
@@ -76,7 +74,7 @@ public class TacyAgent extends AgentImpl  {
 
 	@Override
 	public void bidRejected(Bid bid) {
-		log.warning("Bid Rejected: " + bid.getID());
+		log.warning("Rejected: " + bid);
 		log.warning("      Reason: " + bid.getRejectReason()
 				+ " (" + bid.getRejectReason() + ')');
 	}
