@@ -282,6 +282,9 @@ public class TradeMaster {
 
 	private void printRequestTable(){
 
+		boolean showZeroQuantity = false;
+
+
 		System.out.println("-------------------------------------------");
 
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
@@ -290,7 +293,8 @@ public class TradeMaster {
 				List<ItemRequest> itemRequests = requests.get(auction);
 
 				for (ItemRequest itemRequest : itemRequests) {
-					System.out.println(auction + "\t" + itemRequest);  
+					if(showZeroQuantity || itemRequest.getAmount() != 0)
+						System.out.println(auction + "\t" + itemRequest);  
 				}
 			}
 		}
