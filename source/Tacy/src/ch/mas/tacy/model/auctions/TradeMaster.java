@@ -206,7 +206,14 @@ public class TradeMaster {
 
 			if(deltaQuantity > 0){
 				// we need to buy
-				suggestedPrice = getBuyPrice(auction, pendingRequests); 
+				Bid currentBid = agent.getBid(newBid.getAuction());
+				float currentPrice = 0;
+				if(currentBid != null)
+				{
+					currentPrice = currentBid.getMaxPrice();
+				}
+
+				suggestedPrice = getBuyPrice(auction, pendingRequests, currentPrice); 
 				newBid.addBidPoint(deltaQuantity, suggestedPrice);
 			}else if(deltaQuantity < 0){
 				// we need to sell
@@ -259,7 +266,7 @@ public class TradeMaster {
 	 * @param requests
 	 * @return
 	 */
-	private float getBuyPrice(Auction auction, Iterable<ItemRequest> requests){
+	private float getBuyPrice(Auction auction, Iterable<ItemRequest> requests, float currentPrice){
 
 		float price;
 
@@ -274,7 +281,7 @@ public class TradeMaster {
 
 		if(ismanaged)
 		{
-			price = getManagedBuyPrice(auction, sumQuantity(requests));
+			price = getManagedBuyPrice(auction, sumQuantity(requests), currentPrice);
 		}else
 			price = maxPrice(requests);
 
@@ -287,14 +294,21 @@ public class TradeMaster {
 	 * @param requiredQuantity
 	 * @return
 	 */
-	private float getManagedBuyPrice(Auction auction, int requiredQuantity)
+	private float getManagedBuyPrice(Auction auction, int requiredQuantity, float currentPrice)
 	{
-		float price = 0;
+		float price = currentPrice;
 
 		Quote quote = auctionManager.getCurrentQuote(auction);
 
 		if(quote != null){
-			price = quote.getAskPrice()+20;
+
+			if(quote.getHQW() < requiredQuantity){
+				System.out.println("Increasing Bid: " + quote + "hqw is too small: " + quote.getHQW() );
+				price = quote.getAskPrice()+1;
+			}
+
+		}else {
+			System.err.println("Cant calc managed price for "+auction+": No current Quote!");
 		}
 
 		return price;

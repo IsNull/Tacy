@@ -265,18 +265,18 @@ public class ClientAgent {
 		for (ItemRequest r : tradeMaster.findAllRequests(this, AuctionCategory.HOTEL)) {
 			r.setAmount(0);
 			r.setPrice(0);
-		}	
+		}
 
 
 		if(clientPreferences != null){
 			List<Integer> missingHoteDays = clientPackage.getNeedForHotelDays(clientPreferences);
 
-			for(Integer day : missingHoteDays){
-				Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, isTTProfitable(), day);
+			AuctionType hotelType =  isTTProfitable();
 
+			for(Integer day : missingHoteDays){
+				Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, hotelType, day);
 				tradeMaster.updateManagedRequestedItem(this, auction, 1);
 			}
-			hotelVirgin = false;
 		}
 
 	}
@@ -390,7 +390,7 @@ public class ClientAgent {
 		//check if the client does not have an assigned hotel room type yet.
 		//If so just return the current hotel type
 		if(clientPackage.getCurrenHotelType() == AuctionType.None){
-			
+
 			//if the client needs more than 2 hotel rooms he is not allowed to request good hotel rooms
 			if(clientPreferences.getPresenceDuration() <= 2){
 

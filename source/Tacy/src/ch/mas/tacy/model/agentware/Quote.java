@@ -49,6 +49,11 @@ public class Quote {
 		auction = auctionNo;
 	}
 
+	@Override
+	public String toString(){
+		return "Quote{" + auction + " askprice: " + askPrice + "}";
+	}
+
 	void clearAll() {
 		askPrice = 0f;
 		bidPrice = 0f;
