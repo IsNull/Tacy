@@ -385,12 +385,15 @@ public class ClientAgent {
 	 */
 	private AuctionType isTTProfitable(){
 
-
+		//check if the client does not have an assigned hotel room type yet.
+		//If so just return the current hotel type
 		if(clientPackage.getCurrenHotelType() == AuctionType.None){
-			if(clientPreferences.getPremiumValueHotel() >= 80){
+			
+			//if the client needs more than 2 hotel rooms he is not allowed to request good hotel rooms
+			if(clientPreferences.getPresenceDuration() <= 2){
 
-				//if the difference between the total cost for SS and the total cost for TT is smaller than the clients
-				//premium value there is no point in buying TT rooms
+				//if the difference between the total cost for staying in SS and the total cost for staying in TT 
+				//is smaller than the clients premium value there is no point in buying TT rooms
 				int hypotheticalCostSS = 0;
 				int hypotheticalCostTT = 0;
 
@@ -411,8 +414,9 @@ public class ClientAgent {
 				}
 
 				int difference = hypotheticalCostTT-hypotheticalCostSS; //could also be negative which would mean that the current price for staying in TT is cheaper than for staying in ss.
-
-
+				System.out.println("client "+client+" hotel price difference: "+ difference);
+				//profit of buying TT rooms has to be at least 50
+				difference += 50;
 				return (clientPreferences.getPremiumValueHotel() <= difference) ? AuctionType.CHEAP_HOTEL : AuctionType.GOOD_HOTEL;
 			}else {
 				return AuctionType.CHEAP_HOTEL;
