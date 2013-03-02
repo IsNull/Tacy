@@ -10,7 +10,7 @@ import ch.mas.tacy.model.auctions.AuctionInformationManager;
 
 
 
-public class RiskManager {
+public class AuctionRiskManager {
 
 
 
@@ -23,6 +23,5 @@ public class RiskManager {
 
 			}
 		}
-
 	}
 }
