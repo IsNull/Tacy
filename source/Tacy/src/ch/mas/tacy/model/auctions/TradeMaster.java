@@ -325,13 +325,17 @@ public class TradeMaster {
 	 * @return
 	 */
 	private float getSellPrice(Auction auction) {
-		float price = 0;
+
+		float minPrice = 250;
+		float price = minPrice;
+
 		AuctionInformationManager auctionInformationManager = Services.instance().resolve(AuctionInformationManager.class);
 		Quote q = auctionInformationManager.getCurrentQuote(auction);
 
 		if(q != null)
 		{
-			price = q.getAskPrice() + (int)((Math.random()-0.5f)*40);
+			float suggestedPrice = q.getAskPrice() + (int)((Math.random()-0.5f)*40);
+			price = Math.max(minPrice, suggestedPrice);
 		}
 
 		return price;
