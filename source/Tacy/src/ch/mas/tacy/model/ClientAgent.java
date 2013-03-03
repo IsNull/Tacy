@@ -261,11 +261,12 @@ public class ClientAgent {
 	 */
 	private void handleHotels(){
 
-
+		/*
 		for (ItemRequest r : tradeMaster.findAllRequests(this, AuctionCategory.HOTEL)) {
 			r.setAmount(0);
 			r.setPrice(0);
 		}
+		 */
 
 
 		if(clientPreferences != null){
@@ -286,20 +287,30 @@ public class ClientAgent {
 	private final static int DiffrentEventTypeCount = 3;
 
 
+
+	private List<Auction> getAuctionsOfCategory(AuctionCategory cat){
+		List<Auction> aucts = new ArrayList<Auction>();
+
+		for(int i=0; i< TACAgent.getAuctionNo(); i++){	
+			Auction auction = TACAgent.getAuction(i);
+
+			if(auction.getCategory() == cat){
+				aucts.add(auction);
+			}
+		}
+
+		return aucts;
+	}
+
 	/**
 	 * Returns all possible entertainment auctions, sorted by their current value
 	 * @return
 	 */
 	private List<ValuedAuction> calculateEntertainmentValues(){
 		List<ValuedAuction> valuedAuctions = new ArrayList<ValuedAuction>();
-		List<Auction> entertainmentAuctions = new ArrayList<Auction>();
 
-		//get all entertainment auctions
-		for(int i=0; i< TACAgent.getAuctionNo(); i++){	
-			if(TACAgent.getAuction(i).getCategory() == AuctionCategory.ENTERTAINMENT){
-				entertainmentAuctions.add(TACAgent.getAuction(i));
-			}
-		}
+
+		List<Auction> entertainmentAuctions = getAuctionsOfCategory(AuctionCategory.ENTERTAINMENT);
 
 		//for each entertainment auction calculate the current profit based on its premium value and what the current price for the ticket is
 		for (Auction auction : entertainmentAuctions) {
