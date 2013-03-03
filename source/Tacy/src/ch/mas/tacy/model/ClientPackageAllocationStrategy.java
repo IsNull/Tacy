@@ -70,9 +70,4 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 					);
 		}
 	};
-
-
-
-
-
 }
