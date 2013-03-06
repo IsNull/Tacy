@@ -64,10 +64,10 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 		@Override
 		public int compare(ClientAgent left, ClientAgent right) {
 
-			return Double.compare(
-					left.getClientPreferences().getTripDuration(),
-					right.getClientPreferences().getTripDuration()
-					);
+			int leftValue = left.getClientPreferences() != null ? left.getClientPreferences().getTripDuration() : 0;
+			int rightValue = right.getClientPreferences() != null ? right.getClientPreferences().getTripDuration() : 0;
+
+			return Double.compare(leftValue,rightValue);
 		}
 	};
 }

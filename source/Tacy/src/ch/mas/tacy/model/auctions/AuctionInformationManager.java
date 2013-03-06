@@ -33,10 +33,24 @@ public class AuctionInformationManager {
 
 		this.agent = agent;
 
+		init();
+	}
+
+	private void init(){
+		quoteHistory.clear();
+
 		// init empty history
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
 			quoteHistory.put(TACAgent.getAuction(i), new ArrayList<Quote>());
 		}
+	}
+
+	/**
+	 * Clears all auction information and also the registered change listeners
+	 */
+	public void clear() {
+		init();
+		quoteChangeListeners.clear();
 	}
 
 	private List<Quote> getHistoryOf(Auction auction){
@@ -132,6 +146,8 @@ public class AuctionInformationManager {
 
 		return bidRate;
 	}
+
+
 
 
 }

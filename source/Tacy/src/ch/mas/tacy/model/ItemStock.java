@@ -3,9 +3,6 @@ package ch.mas.tacy.model;
 import java.util.HashMap;
 import java.util.Map;
 
-import ch.mas.tacy.model.agentware.Auction;
-import ch.mas.tacy.model.agentware.TACAgent;
-
 /**
  * Simple implementation of a item stock
  *
@@ -13,6 +10,16 @@ import ch.mas.tacy.model.agentware.TACAgent;
 public class ItemStock<T> {
 	protected final Object stockLock = new Object();
 	protected final Map<T, Integer> stock = new HashMap<T, Integer>();
+
+
+	/**
+	 * Clear all contents in this stock
+	 */
+	public void clear() {
+		synchronized (stockLock) {
+			stock.clear();
+		}
+	}
 
 
 	/**

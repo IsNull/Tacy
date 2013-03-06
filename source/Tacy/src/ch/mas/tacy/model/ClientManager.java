@@ -14,16 +14,18 @@ public class ClientManager {
 
 	private ClientAgent[] clients = new ClientAgent[TACAgent.CLIENT_COUNT];
 
+	private final TACAgent agent;
+
 	public ClientManager(TACAgent agent){
-		initClients(agent);
-		
+		this.agent = agent;
+		initClients();
 	}
 
 	/**
 	 * 
 	 * @param agent
 	 */
-	private void initClients(TACAgent agent){
+	private void initClients(){
 		for (int i = 0; i < clients.length; i++) {
 			clients[i] = new ClientAgent(i, agent);
 		}
@@ -50,6 +52,10 @@ public class ClientManager {
 
 	public Iterable<ClientAgent> getAllClientAgents(){
 		return Lists.asNoNullList(clients);
+	}
+
+	public void clear() {
+		initClients();
 	}
 
 

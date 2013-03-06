@@ -87,6 +87,12 @@ public class TacyAgent extends AgentImpl  {
 
 	@Override
 	public void gameStarted() {
+
+		// clear all previous data
+		auctionManager.clear();
+		tradeMaster.clear();
+		clientManager.clear();
+
 		log.fine("Game " + agent.getGameID() + " started!");
 		clientManager.pulseAll();
 		tradeMaster.pulse();

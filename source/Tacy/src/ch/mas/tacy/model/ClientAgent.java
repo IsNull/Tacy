@@ -26,27 +26,33 @@ import ch.mas.tacy.model.auctions.ValuedAuction;
  */
 public class ClientAgent {
 
-	private boolean logRequests = false;
-	private boolean logWant = false;
-	private boolean flightVirgin = true;
-	private boolean hotelVirgin = true;
-	private final TACAgent agent;
-	private final ClientPackage clientPackage;
-	private ClientPreferences clientPreferences;
-	private final int client;
-
-
+	// services
 	private final Services services = Services.instance();
-
 	private final AuctionInformationManager auctionManager = services.resolve(AuctionInformationManager.class);
 	private final TradeMaster tradeMaster = services.resolve(TradeMaster.class);
 
+	// final fields
+	private boolean logRequests = false;
+	private boolean logWant = false;
+	private boolean flightVirgin = true;
+	private final TACAgent agent;
+	private final ClientPackage clientPackage;
+	private final int client;
+
 	private final QuoteChangeManager quoteChangeManager = new QuoteChangeManager();
 
+	// fields
+	private ClientPreferences clientPreferences = null;
 
+
+
+	/**
+	 * Creates a new CLientAgent
+	 * @param clientID
+	 * @param agent
+	 */
 	public ClientAgent(int clientID, TACAgent agent){
 		this.clientPackage = new ClientPackage(clientID);
-		this.clientPreferences = null;
 		this.client = clientID;
 		this.agent = agent;
 
@@ -57,6 +63,10 @@ public class ClientAgent {
 		return clientPackage;
 	}
 
+	/**
+	 * Returns the clients current preferences - they might be null at any time!
+	 * @return
+	 */
 	public ClientPreferences getClientPreferences(){
 		return clientPreferences;
 	}
@@ -72,9 +82,44 @@ public class ClientAgent {
 	 * such as the game is about to close
 	 */
 	public void pulse() {
-		handleFlights();
-		handleHotels();
-		handleEntertainment();
+
+		System.out.println("=========== PULSE => " + this + " =================");
+
+		try{
+			handleFlights();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+
+		try{
+			handleHotels();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+
+		try{
+			handleEntertainment();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+
+		System.out.println("=======================/=========================");
+
+	}
+
+	/**
+	 * Handle the flights
+	 */
+	private void handleFlights(){
+		if(clientPreferences != null){
+			if(!clientPackage.hasInFlight()){
+				allocFlight(clientPreferences.getPreferredInFlight(), AuctionType.INFLIGHT);
+			}
+
+			if(!clientPackage.hasOutFlight()){
+				allocFlight(clientPreferences.getPreferredOutFlight(), AuctionType.OUTFLIGHT);
+			}
+		}
 	}
 
 
@@ -132,6 +177,9 @@ public class ClientAgent {
 		AuctionCategory category = item.getCategory();
 		AuctionType type = item.getType();
 		int auctionday = item.getAuctionDay();
+
+
+		if(clientPreferences == null) return 0; // as long as we have no preferences, we are not interested in anything
 
 
 		switch(category){
@@ -197,20 +245,7 @@ public class ClientAgent {
 	}
 
 
-	/**
-	 * Handle the flights
-	 */
-	private void handleFlights(){
-		if(clientPreferences != null){
-			if(!clientPackage.hasInFlight()){
-				allocFlight(clientPreferences.getPreferredInFlight(), AuctionType.INFLIGHT);
-			}
 
-			if(!clientPackage.hasOutFlight()){
-				allocFlight(clientPreferences.getPreferredOutFlight(), AuctionType.OUTFLIGHT);
-			}
-		}
-	}
 
 	/**
 	 * Try to allocate a flight
@@ -219,7 +254,7 @@ public class ClientAgent {
 	 */
 	private void allocFlight(int day, AuctionType flightType){
 		if(!(flightType == AuctionType.INFLIGHT || flightType == AuctionType.OUTFLIGHT)){
-			System.err.println("invlaid flight type");
+			System.err.println("allocFlight: invlaid flight type");
 			return;
 		}
 
@@ -309,36 +344,40 @@ public class ClientAgent {
 	private List<ValuedAuction> calculateEntertainmentValues(){
 		List<ValuedAuction> valuedAuctions = new ArrayList<ValuedAuction>();
 
+		if(clientPreferences != null)
+		{
+			List<Auction> entertainmentAuctions = getAuctionsOfCategory(AuctionCategory.ENTERTAINMENT);
 
-		List<Auction> entertainmentAuctions = getAuctionsOfCategory(AuctionCategory.ENTERTAINMENT);
+			//for each entertainment auction calculate the current profit based on its premium value and what the current price for the ticket is
+			for (Auction auction : entertainmentAuctions) {
 
-		//for each entertainment auction calculate the current profit based on its premium value and what the current price for the ticket is
-		for (Auction auction : entertainmentAuctions) {
-
-			Quote currentQuote = auctionManager.getCurrentQuote(auction);
-			if(currentQuote != null){
+				Quote currentQuote = auctionManager.getCurrentQuote(auction);
+				if(currentQuote != null){
 
 
-				float currentPrice = currentQuote.getAskPrice();
-				float value = 0;
+					float currentPrice = currentQuote.getAskPrice();
+					float value = 0;
 
-				if(auction.getType() == AuctionType.EVENT_ALLIGATOR_WRESTLING){
-					value = clientPreferences.getPremiumValueAlligatorWrestling() - currentPrice;
-				} else if(auction.getType() == AuctionType.EVENT_AMUSEMENT){
-					value = clientPreferences.getPremiumValueAmusementPark() - currentPrice;
-				} else if(auction.getType() == AuctionType.EVENT_MUSEUM){
-					value = clientPreferences.getPremiumValuevMuseum() - currentPrice;
-				}
+					if(auction.getType() == AuctionType.EVENT_ALLIGATOR_WRESTLING){
+						value = clientPreferences.getPremiumValueAlligatorWrestling() - currentPrice;
+					} else if(auction.getType() == AuctionType.EVENT_AMUSEMENT){
+						value = clientPreferences.getPremiumValueAmusementPark() - currentPrice;
+					} else if(auction.getType() == AuctionType.EVENT_MUSEUM){
+						value = clientPreferences.getPremiumValuevMuseum() - currentPrice;
+					}
 
-				if(value >= 0)
-				{
-					ValuedAuction va = new ValuedAuction(auction, value);
-					valuedAuctions.add(va);
+					if(value >= 0)
+					{
+						ValuedAuction va = new ValuedAuction(auction, value);
+						valuedAuctions.add(va);
+					}
 				}
 			}
+
+			Collections.sort(valuedAuctions);
 		}
 
-		Collections.sort(valuedAuctions);
+
 		return valuedAuctions;
 	}
 
@@ -403,7 +442,7 @@ public class ClientAgent {
 		if(clientPackage.getCurrenHotelType() == AuctionType.None){
 
 			//if the client needs more than 2 hotel rooms he is not allowed to request good hotel rooms
-			if(clientPreferences.getPresenceDuration() <= 2){
+			if(clientPreferences != null && clientPreferences.getPresenceDuration() <= 2){
 
 				//if the difference between the total cost for staying in SS and the total cost for staying in TT 
 				//is smaller than the clients premium value there is no point in buying TT rooms
@@ -457,30 +496,33 @@ public class ClientAgent {
 
 		assert auction != null : "auction cannot be null!";
 
-		double value;
+		double value = 0;
 
-		int day = auction.getAuctionDay();
-		AuctionType type = auction.getType();
+		if(clientPreferences != null)
+		{
+			int day = auction.getAuctionDay();
+			AuctionType type = auction.getType();
 
-		switch(type){
+			switch(type){
 
-		case EVENT_ALLIGATOR_WRESTLING:
-			value = clientPreferences.getPremiumValueAlligatorWrestling();
+			case EVENT_ALLIGATOR_WRESTLING:
+				value = clientPreferences.getPremiumValueAlligatorWrestling();
 
-		case EVENT_AMUSEMENT:
-			value = clientPreferences.getPremiumValueAmusementPark();
+			case EVENT_AMUSEMENT:
+				value = clientPreferences.getPremiumValueAmusementPark();
 
-		case EVENT_MUSEUM:
-			value = clientPreferences.getPremiumValuevMuseum();
+			case EVENT_MUSEUM:
+				value = clientPreferences.getPremiumValuevMuseum();
 
-		default:
-			value = 0;
+			default:
+				value = 0;
 
-		}
+			}
 
-		//if package is not travel feasible yet we divide by 100 to reduce the package entertainment value
-		if(!clientPackage.isTravelFeasible(clientPreferences)){
-			value = value/100;
+			//if package is not travel feasible yet we divide by 100 to reduce the package entertainment value
+			if(!clientPackage.isTravelFeasible(clientPreferences)){
+				value = value/100;
+			}
 		}
 
 		return value;
@@ -498,9 +540,9 @@ public class ClientAgent {
 		clientPreferences.setPremiumValueAmusementPark(agent.getClientPreference(client, ClientPreferenceType.E2));
 		clientPreferences.setPremiumValuevMuseum(agent.getClientPreference(client, ClientPreferenceType.E3));
 
-		System.out.println("client "+client+" preferences:");
+		System.out.println("-------------- updated client ("+ client +") preferences ------------------");
 		System.out.println(clientPreferences.toString());
-		System.out.println("----------------------------------------");
+		System.out.println("-----------------------------/-----------------------------");
 	}
 
 

@@ -59,6 +59,14 @@ public class TradeMaster {
 	public TradeMaster(TACAgent agent){
 
 		this.agent = agent;
+		init();
+	}
+
+
+	private void init(){
+
+		stock.clear();
+		avaiableItems.clear();
 
 		// init stock and avaiable item store
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
@@ -67,6 +75,11 @@ public class TradeMaster {
 			avaiableItems.setQuantity(auction, 0);
 		}
 	}
+
+	public void clear() {
+		init();
+	}
+
 
 	/**
 	 * Updates the given requested item(auction) amount
@@ -183,6 +196,8 @@ public class TradeMaster {
 	 */
 	private void updateBids(){
 
+		List<String> bidSumary = new ArrayList<String>();
+
 		printRequestTable();
 		System.out.println("TradeMaster: updating bids...");
 
@@ -230,8 +245,16 @@ public class TradeMaster {
 			}
 
 			sendBid(newBid);
+
+			bidSumary.add(newBid.toString());
+
 		}
+
+		printBidSumary(bidSumary);
+
 	}
+
+
 
 	/**
 	 * Sends the given Bid to the server.
@@ -319,36 +342,76 @@ public class TradeMaster {
 	}
 
 
+
+
 	/**
 	 * Get the sell price for the given auction
+	 * 
+	 * This method assumes an entertainment auction,
+	 * as those auctions are the only ones where we are
+	 * allowed to place sell bids. 
+	 * 
 	 * @param auction
 	 * @return
 	 */
 	private float getSellPrice(Auction auction) {
 
-		float minPrice = 250;
-		float price = minPrice;
+		float nicePrice = 200;
+		float avaeragePrice = 60;
+		float price = nicePrice;
 
 		AuctionInformationManager auctionInformationManager = Services.instance().resolve(AuctionInformationManager.class);
-		Quote q = auctionInformationManager.getCurrentQuote(auction);
+		Quote currentQuote = auctionInformationManager.getCurrentQuote(auction);
 
-		if(q != null)
+		long gameduration = agent.getGameTime();
+		long timeLeft = agent.getGameTimeLeft();
+		long emergencyOffset = 3 * (60 * 1000);
+
+
+		float situationPrice;
+		if(currentQuote != null)
 		{
-			float suggestedPrice = q.getAskPrice() + (int)((Math.random()-0.5f)*40);
-			price = Math.max(minPrice, suggestedPrice);
+			//
+			// we have a quote which means there was some 
+			// bidding action ongoing in this Auction
+			//
+			situationPrice = Math.max(currentQuote.getAskPrice(), currentQuote.getBidPrice());
+		}else{
+			situationPrice = (nicePrice + avaeragePrice)/2;
 		}
+
+		float mul = 1.0f;
+		if(timeLeft-emergencyOffset <= 0)
+		{
+			mul = (1.0f / (float)emergencyOffset) * (float)Math.abs(timeLeft-emergencyOffset);
+		}
+
+		float marge = ((nicePrice - situationPrice) / 2f) -10f;
+		marge *= mul;
+		price = situationPrice + marge;
+
+
 
 		return price;
 	}
 
+	/** for debug only */
+	private void printBidSumary(List<String> bidSumary){
+		System.out.println("-------------------Submitted bids sumary----------------------");
+		for (String string : bidSumary) {
+			System.out.println(string);
+		}
+		System.out.println("-----------------------/---------------------------");
+	}
 
 
+	/** for debug only */
 	private void printRequestTable(){
 
 		boolean showZeroQuantity = false;
 
 
-		System.out.println("-------------------------------------------");
+		System.out.println("---------------------Request Table----------------------");
 
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
 			Auction auction = TACAgent.getAuction(i);
@@ -362,7 +425,7 @@ public class TradeMaster {
 			}
 		}
 
-		System.out.println("-------------------------------------------");
+		System.out.println("--------------------/-----------------------");
 
 	}
 
@@ -532,6 +595,7 @@ public class TradeMaster {
 	protected void onRequestAdded(ItemRequest request) {
 
 	}
+
 
 
 

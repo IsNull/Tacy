@@ -1,14 +1,11 @@
 package ch.mas.tacy.model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import ch.mas.tacy.model.agentware.Auction;
 import ch.mas.tacy.model.agentware.AuctionCategory;
 import ch.mas.tacy.model.agentware.AuctionType;
-import ch.mas.tacy.model.agentware.TACAgent;
 
 /**
  * A ClientPackage represents a full package for a single Client
@@ -22,13 +19,6 @@ public class ClientPackage {
 	//represents the client to whom this ClientPackage is assigned to
 	private final int client;
 
-
-	/** first vaule represents day, second determines which type of hotel it is*/
-	//private final Map<Integer, AuctionType> actualHotelRoomsTypes = new HashMap<Integer, AuctionType>();
-
-	/** first value represents day, second if a corresponding event has been allocated or not (either EVENT_ALLIGATOR_WRESTLING, EVENT_AMUSEMENT, EVENT_MUSEUM or None */
-	//private final Map<Integer, AuctionType> actualEvents = new HashMap<Integer, AuctionType>();
-
 	private int actualInFlight;
 	private int actualOutFlight;
 
@@ -39,18 +29,6 @@ public class ClientPackage {
 		this.client = client;
 		this.itemStockAuction = new AuctionItemStock();
 	}
-
-	/**
-	 * calculates on which days overnight stays and events has to be placed in order to make a feasible package
-	 */
-	/*
-	private void ensurePresenceDays(){
-		for(int i=preferredInFlight; i<preferredOutFlight; i++){
-			actualHotelRoomsTypes.put(i, AuctionType.None);
-			actualEvents.put(i, AuctionType.None);
-		}
-	}
-	 */
 
 	/**
 	 * Adds the given quantity to the item stock (add if quantity is positive, remove if negative)
@@ -147,12 +125,12 @@ public class ClientPackage {
 	}
 
 
-/*
+	/*
 	public void setActualHotelRooms(int day, AuctionType type){
 		actualHotelRoomsTypes.put(day, type);
 		System.out.println("clientpackage: hotel room set on day"+day);
 	}
-	*/
+	 */
 
 	/**
 	 * return which type of hotel is currently in the itemstock stored
@@ -177,7 +155,7 @@ public class ClientPackage {
 		List<Integer> missingDays = new ArrayList<Integer>();
 
 		for(Integer day : clientPreferences.getPresenceDays()){
-			
+
 			if(itemStockAuction.getQuantityByCategory(AuctionCategory.HOTEL, day) <= 0){
 				missingDays.add(day);
 			}
@@ -213,17 +191,17 @@ public class ClientPackage {
 	 * @return
 	 */
 	public boolean isTravelFeasible(ClientPreferences clientPreferences){
-		
+
 		boolean feasible = false;
-		
+
 		//check if package contains in and outflight
 		if(this.hasInFlight() && this.hasOutFlight()){
-			
+
 			//check if there is no need for hotel rooms anymore
 			feasible = this.getNeedForHotelDays(clientPreferences).size() == 0;
-			
+
 		}
-		
+
 		return feasible;
 	}
 
