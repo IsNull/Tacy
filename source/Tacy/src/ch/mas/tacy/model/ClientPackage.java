@@ -18,16 +18,16 @@ public class ClientPackage {
 
 	//represents the client to whom this ClientPackage is assigned to
 	private final int client;
+	private final AuctionItemStock clientOwnedItems;
 
 	private int actualInFlight;
 	private int actualOutFlight;
-
-	private AuctionItemStock itemStockAuction;
+	
 
 
 	public ClientPackage(int client){
 		this.client = client;
-		this.itemStockAuction = new AuctionItemStock();
+		this.clientOwnedItems = new AuctionItemStock();
 	}
 
 	/**
@@ -36,7 +36,7 @@ public class ClientPackage {
 	 * @param quantity
 	 */
 	public void addItem(Auction auction, int quantity){
-		itemStockAuction.incrementQuantity(auction, quantity);
+		clientOwnedItems.incrementQuantity(auction, quantity);
 	}
 
 	/**
@@ -45,7 +45,7 @@ public class ClientPackage {
 	 * @return
 	 */
 	public boolean hasHotelAt(int day){
-		return  itemStockAuction.getQuantityByCategory(AuctionCategory.HOTEL, day) > 0;	
+		return  clientOwnedItems.getQuantityByCategory(AuctionCategory.HOTEL, day) > 0;	
 	}
 
 	/**
@@ -54,7 +54,7 @@ public class ClientPackage {
 	 * @return
 	 */
 	public boolean hasEventAt(int day){
-		return itemStockAuction.getQuantityByCategory(AuctionCategory.ENTERTAINMENT, day) > 0;	
+		return clientOwnedItems.getQuantityByCategory(AuctionCategory.ENTERTAINMENT, day) > 0;	
 	}
 
 	/**
@@ -63,7 +63,7 @@ public class ClientPackage {
 	 * @return
 	 */
 	public boolean hasSameEvent(Auction auction){
-		return (itemStockAuction.getQuantity(auction) > 0);
+		return (clientOwnedItems.getQuantity(auction) > 0);
 	}
 
 	/**
@@ -137,9 +137,9 @@ public class ClientPackage {
 	 * @return
 	 */
 	public AuctionType getCurrenHotelType(){
-		if(itemStockAuction.containsItemsOfGivenAuctionType(AuctionType.GOOD_HOTEL)){
+		if(clientOwnedItems.containsItemsOfGivenAuctionType(AuctionType.GOOD_HOTEL)){
 			return AuctionType.GOOD_HOTEL;
-		}else if(itemStockAuction.containsItemsOfGivenAuctionType(AuctionType.CHEAP_HOTEL)){
+		}else if(clientOwnedItems.containsItemsOfGivenAuctionType(AuctionType.CHEAP_HOTEL)){
 			return AuctionType.CHEAP_HOTEL;
 		} else {
 			return AuctionType.None;
@@ -156,7 +156,7 @@ public class ClientPackage {
 
 		for(Integer day : clientPreferences.getPresenceDays()){
 
-			if(itemStockAuction.getQuantityByCategory(AuctionCategory.HOTEL, day) <= 0){
+			if(clientOwnedItems.getQuantityByCategory(AuctionCategory.HOTEL, day) <= 0){
 				missingDays.add(day);
 			}
 		}
@@ -174,7 +174,7 @@ public class ClientPackage {
 
 		for(Integer day : clientPreferences.getPresenceDays()){
 
-			if(itemStockAuction.getQuantityByCategory(AuctionCategory.ENTERTAINMENT, day) <= 0){
+			if(clientOwnedItems.getQuantityByCategory(AuctionCategory.ENTERTAINMENT, day) <= 0){
 				missingDays.add(day);
 			}
 		}
@@ -183,7 +183,7 @@ public class ClientPackage {
 	}
 
 	public boolean hasAtLeastOneItemOf(AuctionType type){
-		return (itemStockAuction.containsItemsOfGivenAuctionType(type));
+		return (clientOwnedItems.containsItemsOfGivenAuctionType(type));
 	}
 
 	/**

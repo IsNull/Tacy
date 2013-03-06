@@ -337,6 +337,8 @@ public class ClientAgent {
 
 		return aucts;
 	}
+	
+	private int MINIMAL_ENTERTAINMENT_PROFIT = 30;
 
 	/**
 	 * Returns all possible entertainment auctions, sorted by their current value
@@ -357,19 +359,19 @@ public class ClientAgent {
 
 
 					float currentPrice = currentQuote.getAskPrice();
-					float value = 0;
+					float profit = 0;
 
 					if(auction.getType() == AuctionType.EVENT_ALLIGATOR_WRESTLING){
-						value = clientPreferences.getPremiumValueAlligatorWrestling() - currentPrice;
+						profit = clientPreferences.getPremiumValueAlligatorWrestling() - currentPrice;
 					} else if(auction.getType() == AuctionType.EVENT_AMUSEMENT){
-						value = clientPreferences.getPremiumValueAmusementPark() - currentPrice;
+						profit = clientPreferences.getPremiumValueAmusementPark() - currentPrice;
 					} else if(auction.getType() == AuctionType.EVENT_MUSEUM){
-						value = clientPreferences.getPremiumValuevMuseum() - currentPrice;
+						profit = clientPreferences.getPremiumValuevMuseum() - currentPrice;
 					}
 
-					if(value >= 0)
+					if(profit >= MINIMAL_ENTERTAINMENT_PROFIT)
 					{
-						ValuedAuction va = new ValuedAuction(auction, value);
+						ValuedAuction va = new ValuedAuction(auction, profit);
 						valuedAuctions.add(va);
 					}
 				}
@@ -408,21 +410,23 @@ public class ClientAgent {
 				Integer day = valuedAuction.getAuction().getAuctionDay();
 				if(missingEventDays.contains(day))
 				{
-					float suggestedPrice = auctionManager.getCurrentQuote(valuedAuction.getAuction()).getAskPrice()+1;
+					Quote currentQuote = auctionManager.getCurrentQuote(valuedAuction.getAuction());
+					if(currentQuote !=null){
+						float suggestedPrice = currentQuote.getAskPrice()+1;
 
-					tradeMaster.updateRequestedItem(
-							this,
-							valuedAuction.getAuction(),
-							1, // 1 piece
-							suggestedPrice);
+						tradeMaster.updateRequestedItem(
+								this,
+								valuedAuction.getAuction(),
+								1, // 1 piece
+								suggestedPrice);
 
-					missingEventDays.remove((Object)day);
+						missingEventDays.remove((Object)day);
 
-					if(logRequests){
-						System.out.println("client with ID "+client+" requested 1 item of "+
-								valuedAuction.getAuction().getType().toString()+" for $"+
-								suggestedPrice);}
-
+						if(logRequests){
+							System.out.println("client with ID "+client+" requested 1 item of "+
+									valuedAuction.getAuction().getType().toString()+" for $"+
+									suggestedPrice);}
+					}
 				}
 			}
 

@@ -90,6 +90,9 @@ public class ClientPreferences {
 	private void calculatePresenceDays(){
 		presenceDays.clear();
 		
+		if(preferredInFlight == 0 || preferredOutFlight == 0)
+			return;
+		
 		for(int i=preferredInFlight; i<preferredOutFlight; i++){
 			presenceDays.add(i);
 		}
