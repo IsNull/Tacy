@@ -27,9 +27,11 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 
 			List<ClientAgent> prioritizedClients = Lists.newList(agents);
 
+			Comparator<ClientAgent> comparator = null;
+
 			if(auction.getCategory() == AuctionCategory.ENTERTAINMENT)
 			{
-				Collections.sort(prioritizedClients, new Comparator<ClientAgent>(){
+				comparator = new Comparator<ClientAgent>(){
 					@Override
 					public int compare(ClientAgent left, ClientAgent right) {
 
@@ -38,10 +40,14 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 								right.getEntertainmentValue(auction)
 								);
 					}
-				});
+				};
 			}else{
-				Collections.sort(prioritizedClients, importanceComparer);
+				comparator = importanceComparer;
 			}
+
+
+			if(comparator != null)
+				Collections.sort(prioritizedClients, comparator);
 
 
 			//
@@ -49,8 +55,11 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 			//
 			for (ClientAgent clientAgent : prioritizedClients) {
 				int wantedQuantity = clientAgent.want(auction);
-				if(wantedQuantity > 0 && avaiableItems.getQuantity(auction) > 0){
 
+				if(avaiableItems.getQuantity(auction) <= 0) 
+					break;
+
+				if(wantedQuantity > 0){
 					int grantedQuantity = Math.min(wantedQuantity, avaiableItems.getQuantity(auction));
 
 					avaiableItems.incrementQuantity(auction, -grantedQuantity); // a negative increment results in a decrement ;)
@@ -60,7 +69,7 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 		}
 	}
 
-	private Comparator<? super ClientAgent> importanceComparer = new Comparator<ClientAgent>(){
+	private Comparator<ClientAgent> importanceComparer = new Comparator<ClientAgent>(){
 		@Override
 		public int compare(ClientAgent left, ClientAgent right) {
 

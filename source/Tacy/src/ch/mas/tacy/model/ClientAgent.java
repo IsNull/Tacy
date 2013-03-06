@@ -85,6 +85,11 @@ public class ClientAgent {
 
 		System.out.println("=========== PULSE => " + this + " =================");
 
+		if(clientPreferences == null)
+		{
+			System.out.println("Missing clientPreferences!");
+		}
+
 		try{
 			handleFlights();
 		}catch(Exception e){
@@ -129,8 +134,6 @@ public class ClientAgent {
 	 * @param quantity a positive quantity means increment, negative is decrement
 	 */
 	public void onTransaction(Auction item, int quantity){
-
-
 
 		// withdraw the corresponding request
 		int currentQuantity = tradeMaster.getRequestedQuantity(this, item);
@@ -264,15 +267,13 @@ public class ClientAgent {
 		long gameduration = agent.getGameTime();
 		long pointOfReturn = 3 * 60 * 1000;
 
-		//System.out.println(gameduration);
-		//System.out.println(pointOfReturn);
 
 		if(quote != null){
 			//System.out.println("quote not null");
 			float currentAskPrice = quote.getAskPrice();
 
 			if(flightVirgin){
-				System.out.println("client "+client+" is virgin");
+				System.out.println("client "+client+" is flight-virgin, placing hopeful bid");
 				//set an offset of 15 to the initial ask price
 				float suggestedPrice = currentAskPrice - 15;
 
@@ -390,7 +391,6 @@ public class ClientAgent {
 		if(clientPreferences != null){
 
 			List<Integer> missingEventDays = clientPackage.getNeedForEvents(clientPreferences);
-			//Map<Integer, AuctionType> plannedEvents = new HashMap<Integer, AuctionType>();
 
 			// clear all pending requests
 			List<ItemRequest> allEntertainmentRequests = tradeMaster.findAllRequests(this, AuctionCategory.ENTERTAINMENT);

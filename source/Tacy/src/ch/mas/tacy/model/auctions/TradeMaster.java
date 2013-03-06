@@ -39,8 +39,9 @@ import ch.mas.tacy.util.Lists;
 public class TradeMaster {
 
 	private static final Logger log = Logger.getLogger(TacyAgent.class.getName());
-
 	private final TACAgent agent;
+
+	private IClientPackageAllocationStrategy packageAllocator = new ClientPackageAllocationStrategy();
 
 	/** holds all item requests */
 	private final Map<Auction, List<ItemRequest>> requests = new HashMap<Auction, List<ItemRequest>>();
@@ -52,7 +53,7 @@ public class TradeMaster {
 	/** holds all items we own */
 	private final AuctionItemStock stock = new AuctionItemStock();
 
-	/** holds all item which are currently not assigned to a sub agent */
+	/** holds all item which are currently not assigned to a sub-agent */
 	private final AuctionItemStock avaiableItems = new AuctionItemStock();
 
 
@@ -126,6 +127,11 @@ public class TradeMaster {
 		assert client != null : "client can not be null";
 		assert auction != null : "auction can not be null";
 
+
+		if(!auction.canSell() && newQuantity < 0)
+			throw new IllegalArgumentException("newQuantity can not be " + newQuantity + ". Selling NOT PERMITTED!");
+
+
 		ItemRequest request = findRequest(auction, client);
 
 		String requestUpdate = "tradeMaster: updateRequestedItem() "
@@ -173,11 +179,14 @@ public class TradeMaster {
 	 * Occurs when the TradeMaster shall consider taking action
 	 */
 	public void pulse(){
+
+		if(agent == null)
+			System.err.println("TradeMaster: TACAgent is null => RUNNINY IN DEBUG MODE ONLY!");
+
 		reallocateItems();
 		updateBids();
 	}
 
-	private IClientPackageAllocationStrategy packageAllocator = new ClientPackageAllocationStrategy();
 
 	/**
 	 * - Assigns available items to the ClientAgents
@@ -188,6 +197,9 @@ public class TradeMaster {
 		packageAllocator.assignItemsToClientPackages(clientManager.getAllClientAgents(), avaiableItems);
 	}
 
+
+	private final List<String> bidSumary = new ArrayList<String>();
+
 	/**
 	 * Send the necessary bids, withdraw no longer necessary bids etc.!
 	 * 
@@ -196,7 +208,7 @@ public class TradeMaster {
 	 */
 	private void updateBids(){
 
-		List<String> bidSumary = new ArrayList<String>();
+		bidSumary.clear();
 
 		printRequestTable();
 		System.out.println("TradeMaster: updating bids...");
@@ -218,10 +230,13 @@ public class TradeMaster {
 			float suggestedPrice = 0;
 
 			Bid newBid = new Bid(auction);
+			Bid currentBid = agent != null ? agent.getBid(auction) : null;
 
 			if(deltaQuantity > 0){
+				//
 				// we need to buy
-				Bid currentBid = agent.getBid(newBid.getAuction());
+				//
+
 				float currentPrice = 0;
 				if(currentBid != null)
 				{
@@ -231,12 +246,18 @@ public class TradeMaster {
 				suggestedPrice = getBuyPrice(auction, pendingRequests, currentPrice); 
 				newBid.addBidPoint(deltaQuantity, suggestedPrice);
 			}else if(deltaQuantity < 0){
+				//
 				// we need to sell
+				//
 				if(auction.canSell()){
 					suggestedPrice = getSellPrice(auction);
 					newBid.addBidPoint(deltaQuantity, suggestedPrice);
 				}
-			}else{ // deltaQuantity = 0
+			}else{ 
+				//
+				// deltaQuantity = 0
+				//
+
 				// we don't need anything - cancel existing bids
 				// for now, we just set the price to 0
 				// so we wont buy anything if possible
@@ -245,9 +266,6 @@ public class TradeMaster {
 			}
 
 			sendBid(newBid);
-
-			bidSumary.add(newBid.toString());
-
 		}
 
 		printBidSumary(bidSumary);
@@ -262,24 +280,29 @@ public class TradeMaster {
 	 * @param newBid
 	 */
 	private void sendBid(Bid newBid){
-		Bid currentBid = agent.getBid(newBid.getAuction());
+
+		Bid currentBid = agent != null ? agent.getBid(newBid.getAuction()) : null;
+
 
 		if(currentBid == null){ // no current Bid
 
 			if(newBid.getQuantity() != 0){ // no need to create a new zero quantity Bid
-				agent.submitBid(newBid);
-				System.out.println("submitted new Bid: " + newBid);
+				if(agent != null) { 
+					agent.submitBid(newBid); }
+				bidSumary.add("NEW: " + newBid.toString());
+				//System.out.println("submitted new Bid: " + newBid);
 			}
 		}else{
 			// we have a current bid
-			if(currentBid.getQuantity() != newBid.getQuantity() || currentBid.getMaxPrice() != newBid.getMaxPrice()){
-				// which does no longer match our preferred Bid values
-				if(!currentBid.isPreliminary())
-				{
-					agent.replaceBid(currentBid, newBid);
-					System.out.println("replaced bid:" + newBid);
-				}
+			//if(currentBid.getQuantity() != newBid.getQuantity() || currentBid.getMaxPrice() != newBid.getMaxPrice()){
+			// which does no longer match our preferred Bid values
+			if(!currentBid.isPreliminary())
+			{
+				if(agent != null) { 
+					agent.replaceBid(currentBid, newBid); }
+				bidSumary.add("REP: " + newBid.toString());
 			}
+			//}
 		}
 	}
 
@@ -397,11 +420,17 @@ public class TradeMaster {
 
 	/** for debug only */
 	private void printBidSumary(List<String> bidSumary){
-		System.out.println("-------------------Submitted bids sumary----------------------");
+
+		if(bidSumary.isEmpty())
+		{
+			System.out.println("/--------- Submitted Bids Sumary: NONE ---------/");
+		}
+
+		System.out.println("-------------------Submitted Bids Sumary----------------------");
 		for (String string : bidSumary) {
 			System.out.println(string);
 		}
-		System.out.println("-----------------------/---------------------------");
+		System.out.println("-------------------------/---------------------------");
 	}
 
 
