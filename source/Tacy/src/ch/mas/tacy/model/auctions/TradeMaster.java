@@ -288,9 +288,9 @@ public class TradeMaster {
 
 			if(newBid.getQuantity() != 0){ // no need to create a new zero quantity Bid
 				if(agent != null) { 
-					agent.submitBid(newBid); }
+					agent.submitBid(newBid); 
+				}
 				bidSumary.add("NEW: " + newBid.toString());
-				//System.out.println("submitted new Bid: " + newBid);
 			}
 		}else{
 			// we have a current bid
@@ -299,8 +299,12 @@ public class TradeMaster {
 			if(!currentBid.isPreliminary())
 			{
 				if(agent != null) { 
-					agent.replaceBid(currentBid, newBid); }
+					agent.replaceBid(currentBid, newBid); 
+				}
 				bidSumary.add("REP: " + newBid.toString());
+			}else{
+				//currentBid.addBidPoint(0, IncreasingAmmount)
+
 			}
 			//}
 		}
