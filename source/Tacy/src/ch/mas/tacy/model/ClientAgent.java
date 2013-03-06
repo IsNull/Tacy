@@ -34,7 +34,6 @@ public class ClientAgent {
 	// final fields
 	private boolean logRequests = false;
 	private boolean logWant = false;
-	private boolean flightVirgin = true;
 	private final TACAgent agent;
 	private final ClientPackage clientPackage;
 	private final int client;
@@ -112,17 +111,22 @@ public class ClientAgent {
 
 	}
 
+	boolean inFlightVirgin = true;
+	boolean outFlightVirgin = true;
+	
 	/**
 	 * Handle the flights
 	 */
 	private void handleFlights(){
 		if(clientPreferences != null){
 			if(!clientPackage.hasInFlight()){
-				allocFlight(clientPreferences.getPreferredInFlight(), AuctionType.INFLIGHT);
+				allocFlight(clientPreferences.getPreferredInFlight(), AuctionType.INFLIGHT, inFlightVirgin);
+				inFlightVirgin = false;
 			}
 
 			if(!clientPackage.hasOutFlight()){
-				allocFlight(clientPreferences.getPreferredOutFlight(), AuctionType.OUTFLIGHT);
+				allocFlight(clientPreferences.getPreferredOutFlight(), AuctionType.OUTFLIGHT, outFlightVirgin);
+				outFlightVirgin = false;
 			}
 		}
 	}
@@ -255,7 +259,8 @@ public class ClientAgent {
 	 * @param day
 	 * @param flightType is it a in or out flight
 	 */
-	private void allocFlight(int day, AuctionType flightType){
+	private void allocFlight(int day, AuctionType flightType, boolean isVirgin){
+		
 		if(!(flightType == AuctionType.INFLIGHT || flightType == AuctionType.OUTFLIGHT)){
 			System.err.println("allocFlight: invlaid flight type");
 			return;
@@ -272,21 +277,25 @@ public class ClientAgent {
 			//System.out.println("quote not null");
 			float currentAskPrice = quote.getAskPrice();
 
-			if(flightVirgin){
+			if(isVirgin){
 				System.out.println("client "+client+" is flight-virgin, placing hopeful bid");
+				/*
 				//set an offset of 15 to the initial ask price
 				float suggestedPrice = currentAskPrice - 15;
 
 				//request this flight to the suggest price
 				tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
 				if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+suggestedPrice);}
-
-				flightVirgin = false;
+				 */
+				tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
 			} else if (gameduration > pointOfReturn || auctionManager.getPriceGrowByValue(auction, 15)){
 				//replace pending bid with new one which will match the ask price immediately
 				//System.out.println("not virgin");
+				
+				/*
 				tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
 				if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "+auction.getType().toString()+" for $"+currentAskPrice+1);}
+			*/
 			}
 		}
 	}
