@@ -412,12 +412,13 @@ public class TradeMaster {
 
 		if(quote != null){
 
+			float cp = Math.max(quote.getAskPrice(), quote.getBidPrice());
+
 			if(quote.getHQW() < requiredQuantity){
 				System.out.println("Increasing Bid: " + quote + "; hqw is " + quote.getHQW() + " of " + requiredQuantity );
-
-				float cp = Math.max(quote.getAskPrice(), quote.getBidPrice());
-
 				price = cp+IncreasingAmmount;
+			}else{
+				price = cp+1;
 			}
 
 		}else {
@@ -443,7 +444,7 @@ public class TradeMaster {
 	 */
 	private float getSellPrice(Auction auction) {
 
-		float nicePrice = 80;
+		float nicePrice = 150;
 		float avaeragePrice = 60;
 		float price = nicePrice;
 
@@ -468,7 +469,7 @@ public class TradeMaster {
 		}
 
 		float mul = 1.0f;
-		if(timeLeft-emergencyOffset <= 0)
+		if((timeLeft-emergencyOffset) <= 0)
 		{
 			mul = (1.0f / (float)emergencyOffset) * (float)Math.abs(timeLeft-emergencyOffset);
 		}
