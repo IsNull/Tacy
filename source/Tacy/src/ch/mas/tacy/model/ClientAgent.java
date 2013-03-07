@@ -253,7 +253,6 @@ public class ClientAgent {
 
 
 
-
 	/**
 	 * Try to allocate a flight
 	 * @param day
@@ -268,8 +267,8 @@ public class ClientAgent {
 
 
 		// clear all pending requests
-		List<ItemRequest> allEntertainmentRequests = tradeMaster.findAllRequests(this, AuctionCategory.FLIGHT);
-		for (ItemRequest itemRequest : allEntertainmentRequests) {
+		List<ItemRequest> allfights = tradeMaster.findAllRequests(this, AuctionCategory.FLIGHT);
+		for (ItemRequest itemRequest : allfights) {
 			tradeMaster.updateRequestedItem(this, itemRequest.getAuction(), 0, 0);
 		}
 
@@ -277,27 +276,23 @@ public class ClientAgent {
 		Auction auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT, flightType, day);
 		Quote quote = auctionManager.getCurrentQuote(auction);
 		long gameduration = agent.getGameTime();
-		long pointOfReturn = 3 * 60 * 1000;
+		long pointOfReturn = 1 * 60 * 1000;
 
 		if(quote != null){
-			float currentAskPrice = quote.getAskPrice();
+
+
 
 			if (gameduration > pointOfReturn || auctionManager.getPriceGrowByValue(auction, 30)){
-				System.out.println("client "+client+" is not flight-virgin, placing immediate bid");
+				System.out.println("client "+client+" placing immediate bid for flight!");
 
 				//replace pending bid with new one which will match the ask price immediately
-				tradeMaster.updateRequestedItem(this, auction, 1, currentAskPrice+1);
-				if(logRequests){System.out.println("client with ID "+client+" requested 1 item of "
-						+auction.getType().toString()+" for $"+currentAskPrice+1);}
+				tradeMaster.updateRequestedItem(this, auction, 1, 1000);
 				return true;
-			}else{ 
-
-				// if virgin
-
+			}else if(isVirgin){ 
 				System.out.println("client "+client+" is flight-virgin, placing hopeful bid");
 
 				//set an offset of 15 to the initial ask price
-				float suggestedPrice = currentAskPrice - 15;
+				float suggestedPrice = quote.getAskPrice() - 15;
 
 				//request this flight to the suggest price
 				tradeMaster.updateRequestedItem(this, auction, 1, suggestedPrice);
