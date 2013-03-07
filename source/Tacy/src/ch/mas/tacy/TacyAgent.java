@@ -55,6 +55,8 @@ public class TacyAgent extends AgentImpl  {
 		auctionManager.onQuoteUpdated(quote);
 		clientManager.pulseAll();
 		tradeMaster.pulse();
+
+		tradeMaster.onQuoteUpdated(quote);
 	}
 
 	@Override

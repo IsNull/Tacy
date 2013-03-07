@@ -15,7 +15,7 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 
 
 	/**
-	 * Assigns the avaiable items to ClientAgents
+	 * Assigns the available items to ClientAgents
 	 * 
 	 */
 	@Override
@@ -25,27 +25,11 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
 			final Auction auction = TACAgent.getAuction(i);
 
+			//
+			// Prioritize the ClientAgents depending on the item/auction
+			//
 			List<ClientAgent> prioritizedClients = Lists.newList(agents);
-
-			Comparator<ClientAgent> comparator = null;
-
-			if(auction.getCategory() == AuctionCategory.ENTERTAINMENT)
-			{
-				comparator = new Comparator<ClientAgent>(){
-					@Override
-					public int compare(ClientAgent left, ClientAgent right) {
-
-						return Double.compare(
-								left.getEntertainmentValue(auction),
-								right.getEntertainmentValue(auction)
-								);
-					}
-				};
-			}else{
-				comparator = importanceComparer;
-			}
-
-
+			Comparator<ClientAgent> comparator = findComparer(auction);
 			if(comparator != null)
 				Collections.sort(prioritizedClients, comparator);
 
@@ -67,6 +51,29 @@ public class ClientPackageAllocationStrategy implements IClientPackageAllocation
 				}
 			}
 		}
+	}
+
+
+
+	private Comparator<ClientAgent> findComparer(final Auction auction){
+		Comparator<ClientAgent> comparator = null;
+		if(auction.getCategory() == AuctionCategory.ENTERTAINMENT)
+		{
+			comparator = new Comparator<ClientAgent>(){
+				@Override
+				public int compare(ClientAgent left, ClientAgent right) {
+
+					return Double.compare(
+							left.getEntertainmentValue(auction),
+							right.getEntertainmentValue(auction)
+							);
+				}
+			};
+		}else{
+			comparator = importanceComparer;
+		}
+
+		return comparator;
 	}
 
 	private Comparator<ClientAgent> importanceComparer = new Comparator<ClientAgent>(){

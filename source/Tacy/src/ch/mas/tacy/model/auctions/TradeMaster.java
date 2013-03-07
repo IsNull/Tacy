@@ -188,6 +188,30 @@ public class TradeMaster {
 	}
 
 
+	public void onQuoteUpdated(Quote quote) {
+		/*
+		Auction auction = quote.getAuction();
+		AuctionCategory auctionCategory = auction.getCategory();
+		if (auctionCategory == AuctionCategory.HOTEL) {
+			int alloc = agent.getAllocation(auction);
+			if (alloc > 0 && quote.hasHQW(agent.getBid(auction)) &&
+					quote.getHQW() < alloc) {
+				Bid bid = new Bid(auction);
+
+
+
+
+				prices[auction.getId()] = quote.getAskPrice() + 50;
+				bid.addBidPoint(alloc, prices[auction.getId()]);
+
+
+				agent.submitBid(bid);
+			}
+		} 
+		 */
+	}
+
+
 	/**
 	 * - Assigns available items to the ClientAgents
 	 * Client request will become undone when an desired item was assigned to one of the clients
@@ -195,6 +219,12 @@ public class TradeMaster {
 	private void reallocateItems(){
 		ClientManager clientManager = Services.instance().resolve(ClientManager.class);
 		packageAllocator.assignItemsToClientPackages(clientManager.getAllClientAgents(), avaiableItems);
+	}
+
+	public void printInfo(){
+		printRequestTable();
+
+		printStockTable();
 	}
 
 
@@ -210,7 +240,8 @@ public class TradeMaster {
 
 		bidSumary.clear();
 
-		printRequestTable();
+		printInfo();
+
 		System.out.println("TradeMaster: updating bids...");
 
 		// handle Bids if necessary
@@ -243,16 +274,22 @@ public class TradeMaster {
 					currentPrice = currentBid.getMaxPrice();
 				}
 
-				suggestedPrice = getBuyPrice(auction, pendingRequests, currentPrice); 
-				newBid.addBidPoint(deltaQuantity, suggestedPrice);
+				suggestedPrice = getBuyPrice(auction, pendingRequests, currentPrice);
+				if(suggestedPrice > 0){
+					newBid.addBidPoint(deltaQuantity, suggestedPrice);
+				}else{
+					newBid = null;
+				}
 			}else if(deltaQuantity < 0){
 				//
 				// we need to sell
 				//
-				if(auction.canSell()){
-					suggestedPrice = getSellPrice(auction);
-					newBid.addBidPoint(deltaQuantity, suggestedPrice);
-				}
+
+				suggestedPrice = getSellPrice(auction);
+				newBid.addBidPoint(deltaQuantity, suggestedPrice);
+
+				System.out.println("trying to sell item " + newBid);
+
 			}else{ 
 				//
 				// deltaQuantity = 0
@@ -265,13 +302,36 @@ public class TradeMaster {
 				newBid.addBidPoint(deltaQuantity, suggestedPrice);
 			}
 
-			sendBid(newBid);
+			if(newBid != null)
+				sendBid(newBid);
 		}
 
 		printBidSumary(bidSumary);
-
 	}
 
+
+
+	private void printStockTable() {
+
+
+		System.out.println("||||||||||||||||||||||||STOCK||||||||||||||||||||||||||||");
+
+		int stockQ = 0;
+		int avaiableQ = 0;
+		for (int i = 0; i < TACAgent.getAuctionNo(); i++) {
+			Auction auction = TACAgent.getAuction(i);
+
+			stockQ = stock.getQuantity(auction);
+			avaiableQ = avaiableItems.getQuantity(auction);
+
+			if(stockQ != 0 || avaiableQ != 0)
+			{
+				System.out.println(auction + " |STOCK| " + avaiableQ + " avaiable of owned " + stockQ);
+			}
+		}
+
+		System.out.println("||||||||||||||||||||||||||||||/||||||||||||||||||||||||||||");
+	}
 
 
 	/**
@@ -284,29 +344,28 @@ public class TradeMaster {
 		Bid currentBid = agent != null ? agent.getBid(newBid.getAuction()) : null;
 
 
-		if(currentBid == null || newBid.getAuction().getCategory() == AuctionCategory.HOTEL){ // no current Bid
+		if(currentBid == null 
+				|| newBid.getAuction().getCategory() == AuctionCategory.HOTEL 
+				|| newBid.getAuction().getCategory() == AuctionCategory.ENTERTAINMENT){ // no current Bid
 
 			if(newBid.getQuantity() != 0){ // no need to create a new zero quantity Bid
 				if(agent != null) { 
 					agent.submitBid(newBid); 
 				}
-				bidSumary.add("NEW: " + newBid.toString());
+				bidSumary.add("NEW: " + newBid);
 			}
 		}else{
-			// we have a current bid
-			//if(currentBid.getQuantity() != newBid.getQuantity() || currentBid.getMaxPrice() != newBid.getMaxPrice()){
-			// which does no longer match our preferred Bid values
-			if(!currentBid.isPreliminary())
+			if(newBid.getAuction().getCategory() == AuctionCategory.FLIGHT)
 			{
-				if(agent != null) { 
-					agent.replaceBid(currentBid, newBid); 
+				// we have a current bid
+				if(!currentBid.isPreliminary())
+				{
+					if(agent != null) { 
+						agent.replaceBid(currentBid, newBid); 
+					}
+					bidSumary.add("REP: " + newBid.toString());
 				}
-				bidSumary.add("REP: " + newBid.toString());
-			}else{
-				//currentBid.addBidPoint(0, IncreasingAmmount)
-
 			}
-
 		}
 	}
 
@@ -338,7 +397,7 @@ public class TradeMaster {
 		return price;
 	}
 
-	private final float IncreasingAmmount = 20;
+	private final float IncreasingAmmount = 55;
 
 	/**
 	 * Calculates a bid price for the given item (auction)
@@ -363,6 +422,7 @@ public class TradeMaster {
 
 		}else {
 			System.err.println("Cant calc managed price for "+auction+": No current Quote!");
+			price = 10;
 		}
 
 		return price;
@@ -383,7 +443,7 @@ public class TradeMaster {
 	 */
 	private float getSellPrice(Auction auction) {
 
-		float nicePrice = 200;
+		float nicePrice = 80;
 		float avaeragePrice = 60;
 		float price = nicePrice;
 
@@ -628,6 +688,7 @@ public class TradeMaster {
 	protected void onRequestAdded(ItemRequest request) {
 
 	}
+
 
 
 

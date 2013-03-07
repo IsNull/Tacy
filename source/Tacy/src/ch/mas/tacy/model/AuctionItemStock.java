@@ -56,17 +56,19 @@ public class AuctionItemStock extends ItemStock<Auction> {
 	 */
 	public boolean containsItemsOfGivenAuctionType(AuctionType type){
 
+		boolean contained = false;
+
 		synchronized (stockLock) {
-
-			int quantity = 0;
-
 			for (Auction auction : stock.keySet()) {
-				if(auction.getType() == type){
-					quantity += stock.get(auction);
+				if(auction.getType() == type && stock.get(auction) > 0){
+					contained = true;
+					break;
 				}
 			}
-			return quantity > 0;
 		}
+
+		return contained;
+
 	}
 
 

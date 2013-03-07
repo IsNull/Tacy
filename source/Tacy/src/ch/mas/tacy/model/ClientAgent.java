@@ -142,7 +142,11 @@ public class ClientAgent {
 		// withdraw the corresponding request
 		int currentQuantity = tradeMaster.getRequestedQuantity(this, item);
 		int remainingQuantity = currentQuantity - quantity;
+
 		tradeMaster.updateRequestedItem(this, item, remainingQuantity);
+
+
+		System.out.println("Transaction to " + this + "    " + quantity + " stk :" + item);
 
 
 		// keep track in the clients package
@@ -158,18 +162,28 @@ public class ClientAgent {
 			clientPackage.setOutFlight(auctionday);
 			break;
 		case CHEAP_HOTEL:
+			clientPackage.addItem(item, quantity);
+			break;
 		case GOOD_HOTEL:
 			clientPackage.addItem(item, quantity);
 			break;
+
 		case EVENT_ALLIGATOR_WRESTLING:
+			clientPackage.addItem(item, quantity);
+			break;
 		case EVENT_AMUSEMENT:
+			clientPackage.addItem(item, quantity);
+			break;
 		case EVENT_MUSEUM:
 			clientPackage.addItem(item, quantity);
 			break;
+
 		default:
 			break;
 		}
 	}
+
+
 
 	/**
 	 * Checks if this client wants the given item(Auction) type
@@ -215,7 +229,7 @@ public class ClientAgent {
 				// overnight stay of hotel has to be within the trip,
 				// must be of the same hotel type which already exists
 				// in the package and not already existing in package
-				if(clientPackage.getCurrenHotelType().equals(type) || clientPackage.getCurrenHotelType().equals(AuctionType.None)){
+				if(clientPackage.getCurrenHotelType() == type || clientPackage.getCurrenHotelType() == AuctionType.None){
 					quantity = 1;
 					if(logWant){System.out.println("clientagent: client "+client+" wants " +quantity+" hotel rooms for day "+auctionday);}
 				}
@@ -224,21 +238,16 @@ public class ClientAgent {
 
 		case ENTERTAINMENT:
 
-			//client wants item if: event type does not already exist, there is no event on given day, premium value for given type is not 0
+			//client wants item if: 
+			// - event type does not already exist
+			// - there is no event on given day
+			// - premium value for given type is not 0
 
 			if(!clientPackage.hasEventAt(auctionday) && !clientPackage.hasSameEvent(item)){
-				if(type.equals(AuctionType.EVENT_ALLIGATOR_WRESTLING) && clientPreferences.getPremiumValueAlligatorWrestling() != 0){
+				ItemRequest request = tradeMaster.findRequest(item, this);
+				if(request != null && request.getAmount() > 0)
 					quantity = 1;
-					if(logWant){System.out.println("clientagent: client "+client+" wants " +quantity+" event type alligator wrestling for day "+auctionday);}
-				}else if(type.equals(AuctionType.EVENT_AMUSEMENT) && clientPreferences.getPremiumValueAmusementPark() != 0){
-					quantity = 1;
-					if(logWant){System.out.println("clientagent: client "+client+" wants " +quantity+" event type amusement park for day "+auctionday);}
-				}else if(type.equals(AuctionType.EVENT_MUSEUM) && clientPreferences.getPremiumValuevMuseum() != 0){
-					quantity = 1;
-					if(logWant){System.out.println("clientagent: client "+client+" wants " +quantity+" event type museum for day "+auctionday);}
-				}
 			}
-
 
 			break;
 
@@ -308,18 +317,10 @@ public class ClientAgent {
 	 */
 	private void handleHotels(){
 
-		/*
-		for (ItemRequest r : tradeMaster.findAllRequests(this, AuctionCategory.HOTEL)) {
-			r.setAmount(0);
-			r.setPrice(0);
-		}
-		 */
-
-
 		if(clientPreferences != null){
 			List<Integer> missingHoteDays = clientPackage.getNeedForHotelDays(clientPreferences);
 
-			AuctionType hotelType =  isTTProfitable();
+			AuctionType hotelType = bestHotelType();
 
 			for(Integer day : missingHoteDays){
 				Auction auction = TACAgent.getAuctionFor(AuctionCategory.HOTEL, hotelType, day);
@@ -349,7 +350,7 @@ public class ClientAgent {
 		return aucts;
 	}
 
-	private int MINIMAL_ENTERTAINMENT_PROFIT = 30;
+	private int MINIMAL_ENTERTAINMENT_PROFIT = 50;
 
 	/**
 	 * Returns all possible entertainment auctions, sorted by their current value
@@ -412,7 +413,6 @@ public class ClientAgent {
 			}
 
 			// for each free day, ensure that we have an item-event request with a given price
-
 			// check if we have any free entertainment day, if not -> abort
 
 			List<ValuedAuction> sortedValues = calculateEntertainmentValues();
@@ -446,11 +446,19 @@ public class ClientAgent {
 	}
 
 
+	private AuctionType fixedHotelType = AuctionType.None;
+
 	/**
 	 * returns for which hotel type we have to buy rooms (based on clients premium value for hotels)
 	 * @return
 	 */
-	private AuctionType isTTProfitable(){
+	private AuctionType bestHotelType(){
+
+		if(fixedHotelType != AuctionType.None)
+			return fixedHotelType;
+
+
+		AuctionType hotelType;
 
 		//check if the client does not have an assigned hotel room type yet.
 		//If so just return the current hotel type
@@ -471,12 +479,16 @@ public class ClientAgent {
 					Quote currentQuote = auctionManager.getCurrentQuote(auction);
 					if(currentQuote != null){
 						hypotheticalCostSS += currentQuote.getAskPrice();
+					}else{
+						hypotheticalCostSS += 150; // we dont know yet how much it exactly is
 					}
 
 					Auction auction2 = TACAgent.getAuctionFor(AuctionCategory.HOTEL, AuctionType.GOOD_HOTEL, day);
 					Quote currentQuote2 = auctionManager.getCurrentQuote(auction2);
 					if(currentQuote2 != null){
 						hypotheticalCostTT += currentQuote2.getAskPrice();			
+					}else{
+						hypotheticalCostTT += 200; // we dont know exactly how much it is...
 					}
 				}
 
@@ -484,15 +496,17 @@ public class ClientAgent {
 				System.out.println("client "+client+" hotel price difference: "+ difference);
 				//profit of buying TT rooms has to be at least 50
 				difference += 50;
-				return (clientPreferences.getPremiumValueHotel() <= difference) ? AuctionType.CHEAP_HOTEL : AuctionType.GOOD_HOTEL;
+				hotelType = (clientPreferences.getPremiumValueHotel() <= difference) ? AuctionType.CHEAP_HOTEL : AuctionType.GOOD_HOTEL;
 			}else {
-				return AuctionType.CHEAP_HOTEL;
+				hotelType = AuctionType.CHEAP_HOTEL;
 			}
+
 		} else {
-
-			return clientPackage.getCurrenHotelType();
-
+			hotelType = clientPackage.getCurrenHotelType();
 		}
+
+		fixedHotelType  = hotelType;
+		return hotelType;
 	}
 
 
