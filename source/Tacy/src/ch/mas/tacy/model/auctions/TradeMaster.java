@@ -187,31 +187,6 @@ public class TradeMaster {
 		updateBids();
 	}
 
-
-	public void onQuoteUpdated(Quote quote) {
-		/*
-		Auction auction = quote.getAuction();
-		AuctionCategory auctionCategory = auction.getCategory();
-		if (auctionCategory == AuctionCategory.HOTEL) {
-			int alloc = agent.getAllocation(auction);
-			if (alloc > 0 && quote.hasHQW(agent.getBid(auction)) &&
-					quote.getHQW() < alloc) {
-				Bid bid = new Bid(auction);
-
-
-
-
-				prices[auction.getId()] = quote.getAskPrice() + 50;
-				bid.addBidPoint(alloc, prices[auction.getId()]);
-
-
-				agent.submitBid(bid);
-			}
-		} 
-		 */
-	}
-
-
 	/**
 	 * - Assigns available items to the ClientAgents
 	 * Client request will become undone when an desired item was assigned to one of the clients
