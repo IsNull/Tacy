@@ -284,7 +284,7 @@ public class TradeMaster {
 		Bid currentBid = agent != null ? agent.getBid(newBid.getAuction()) : null;
 
 
-		if(currentBid == null){ // no current Bid
+		if(currentBid == null || newBid.getAuction().getCategory() == AuctionCategory.HOTEL){ // no current Bid
 
 			if(newBid.getQuantity() != 0){ // no need to create a new zero quantity Bid
 				if(agent != null) { 
@@ -306,7 +306,7 @@ public class TradeMaster {
 				//currentBid.addBidPoint(0, IncreasingAmmount)
 
 			}
-			//}
+
 		}
 	}
 
