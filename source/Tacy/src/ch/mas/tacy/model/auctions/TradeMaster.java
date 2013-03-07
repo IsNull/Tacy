@@ -320,8 +320,8 @@ public class TradeMaster {
 
 
 		if(currentBid == null 
-				|| newBid.getAuction().getCategory() == AuctionCategory.HOTEL 
-				|| newBid.getAuction().getCategory() == AuctionCategory.ENTERTAINMENT){ // no current Bid
+				|| newBid.getAuction().getCategory() == AuctionCategory.HOTEL //|| newBid.getAuction().getCategory() == AuctionCategory.ENTERTAINMENT
+				){ // no current Bid
 
 			if(newBid.getQuantity() != 0){ // no need to create a new zero quantity Bid
 				if(agent != null) { 
@@ -419,7 +419,7 @@ public class TradeMaster {
 	 */
 	private float getSellPrice(Auction auction) {
 
-		float nicePrice = 150;
+		float nicePrice = 100;
 		float avaeragePrice = 60;
 		float price = nicePrice;
 
