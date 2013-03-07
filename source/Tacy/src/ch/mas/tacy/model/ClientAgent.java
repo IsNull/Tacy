@@ -276,11 +276,9 @@ public class ClientAgent {
 		Auction auction = TACAgent.getAuctionFor(AuctionCategory.FLIGHT, flightType, day);
 		Quote quote = auctionManager.getCurrentQuote(auction);
 		long gameduration = agent.getGameTime();
-		long pointOfReturn = 1 * 60 * 1000;
+		long pointOfReturn = 3 * 60 * 1000;
 
 		if(quote != null){
-
-
 
 			if (gameduration > pointOfReturn || auctionManager.getPriceGrowByValue(auction, 30)){
 				System.out.println("client "+client+" placing immediate bid for flight!");
