@@ -195,7 +195,7 @@ public class TACAgent implements Task, TACMessageReceiver {
 		}
 
 		host =
-				trim(a.getArgument("-host", config.getProperty("host", "localhost")));
+				trim(a.getArgument("-host", "beast.com.bth.se"));
 		port = a.getArgument("-port", getInt(config, "port", 6500));
 		connectionClassName =
 				trim(a.getArgument("-connection",
