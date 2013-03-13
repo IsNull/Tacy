@@ -1,8 +1,8 @@
 Tacy
 ====
 
-Trading agent competition - Agent Tacy
+Tacy is an agent implementation for the TAC (Trading Agent Competition) Game. 
 
-This is an agent implementation, called Tacy.
+see http://tac.sics.se
 
 eof
